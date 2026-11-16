@@ -186,6 +186,7 @@ const GALLERY_ITEMS = [
     category: "Weddings",
     location: "Karen, Nairobi",
     tag: "Pomp & Colour",
+    mediaType: "photo",
     image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
     desc: "Electrifying bride & groom entrance, seamless program, and royal energy.",
   },
@@ -194,6 +195,7 @@ const GALLERY_ITEMS = [
     category: "Team Building",
     location: "Naivasha Resort",
     tag: "High Energy",
+    mediaType: "photo",
     image: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80",
     desc: "Engaging corporate challenges, obstacle courses, and morale-boosting energizers.",
   },
@@ -202,6 +204,7 @@ const GALLERY_ITEMS = [
     category: "Weddings",
     location: "Kiambu",
     tag: "Culture & Dignity",
+    mediaType: "photo",
     image: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80",
     desc: "Respectful cultural negotiations, bilingual hosting, and vibrant music.",
   },
@@ -210,6 +213,7 @@ const GALLERY_ITEMS = [
     category: "Birthdays",
     location: "Lavington",
     tag: "Celebration",
+    mediaType: "photo",
     image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
     desc: "Cake cutting moments, roast-and-toast session, and crowd-moving party music.",
   },
@@ -218,6 +222,7 @@ const GALLERY_ITEMS = [
     category: "Sound & Setup",
     location: "Nairobi",
     tag: "Crystal Audio",
+    mediaType: "photo",
     image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
     desc: "High-definition sound dispersion, acoustic calibration, and wireless clarity.",
   },
@@ -226,6 +231,7 @@ const GALLERY_ITEMS = [
     category: "Corporate",
     location: "Ruiru",
     tag: "Executive Excellence",
+    mediaType: "photo",
     image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
     desc: "Award presentations, executive speeches, and evening celebration dance floor.",
   },
@@ -252,27 +258,65 @@ const REVIEWS = [
   },
 ];
 
+function getYouTubeId(url?: string) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+}
+
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [galleryCategory, setGalleryCategory] = useState("All");
-  const [liveGallery, setLiveGallery] = useState(GALLERY_ITEMS);
+  const [liveGallery, setLiveGallery] = useState<any[]>(GALLERY_ITEMS);
+  const [selectedMedia, setSelectedMedia] = useState<any>(null);
 
   useEffect(() => {
     fetch("/api/gallery")
       .then((res) => res.json())
       .then((data) => {
         if (data.items && data.items.length > 0) {
-          const mapped = data.items.map((item: any) => ({
-            title: item.title,
-            category: item.category,
-            location: item.location || "Kenya",
-            tag: item.category,
-            image:
-              item.media_url ||
-              item.thumbnail_url ||
-              "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
-            desc: item.description || "Bringing Pomp and Colour to celebrations across Kenya.",
-          }));
+          const mapped = data.items.map((item: any) => {
+            const isYoutube =
+              item.media_type === "youtube" ||
+              (item.media_url &&
+                (item.media_url.includes("youtu.be") ||
+                  item.media_url.includes("youtube.com")));
+            const isTiktok =
+              item.media_type === "tiktok" ||
+              (item.media_url && item.media_url.includes("tiktok.com"));
+            const isVideo = item.media_type === "video";
+
+            let previewImg = item.thumbnail_url || item.media_url;
+            if (isYoutube) {
+              const ytId = getYouTubeId(item.media_url);
+              if (ytId) {
+                previewImg = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+              }
+            }
+
+            return {
+              id: item.id,
+              title: item.title,
+              category: item.category,
+              location: item.location || "Kenya",
+              tag: item.category,
+              mediaType: isYoutube
+                ? "youtube"
+                : isTiktok
+                ? "tiktok"
+                : isVideo
+                ? "video"
+                : "photo",
+              mediaUrl: item.media_url,
+              image:
+                previewImg ||
+                "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+              desc:
+                item.description ||
+                "Bringing Pomp and Colour to celebrations across Kenya.",
+            };
+          });
           setLiveGallery(mapped);
         }
       })
@@ -719,42 +763,175 @@ export default function Home() {
 
           {/* Gallery Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGallery.map((item, idx) => (
+            {filteredGallery.map((item: any, idx) => {
+              const isVideo = item.mediaType === "video";
+              const isYoutube = item.mediaType === "youtube";
+              const isTiktok = item.mediaType === "tiktok";
+              const isWatchable = isVideo || isYoutube || isTiktok;
+
+              return (
+                <div
+                  key={idx}
+                  onClick={() => setSelectedMedia(item)}
+                  className="group relative rounded-2xl overflow-hidden card-gradient border border-white/10 hover:border-[#E5A827]/50 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+                >
+                  <div className="relative aspect-4/3 overflow-hidden bg-slate-900">
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      unoptimized={
+                        item.image.includes("cloudinary.com") ||
+                        item.image.includes("youtube.com") ||
+                        item.image.includes("ytimg.com")
+                      }
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#060D1E] via-[#060D1E]/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+
+                    {/* Category Tag */}
+                    <span className="absolute top-3 right-3 bg-[#E5A827] text-[#060D1E] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                      {item.tag}
+                    </span>
+
+                    {/* Video/Play overlay */}
+                    {isWatchable && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-12 h-12 rounded-full bg-[#1044A3]/90 text-[#E5A827] border-2 border-[#E5A827] flex items-center justify-center shadow-lg group-hover:scale-115 transition-transform duration-300">
+                          {isYoutube ? (
+                            <YoutubeIcon className="w-6 h-6 text-white" />
+                          ) : isTiktok ? (
+                            <TikTokIcon className="w-5 h-5 text-white" />
+                          ) : (
+                            <Play className="w-5 h-5 fill-current ml-0.5" />
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-5 space-y-2">
+                    <div className="flex items-center justify-between text-xs text-[#E5A827]">
+                      <span className="font-semibold">{item.category}</span>
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {item.location}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-white text-base group-hover:text-[#E5A827] transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs text-slate-300 leading-relaxed font-light line-clamp-2">
+                      {item.desc}
+                    </p>
+                    <div className="pt-2 flex items-center gap-1.5 text-xs text-[#E5A827] font-semibold group-hover:underline">
+                      <span>{isWatchable ? "Watch Reel" : "View Photo"}</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Lightbox / Media Viewer Modal */}
+          {selectedMedia && (
+            <div
+              className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+              onClick={() => setSelectedMedia(null)}
+            >
               <div
-                key={idx}
-                className="group relative rounded-2xl overflow-hidden card-gradient border border-white/10 hover:border-[#E5A827]/50 transition-all duration-300"
+                className="relative max-w-3xl w-full bg-[#0A1A3A] border border-[#E5A827]/40 rounded-3xl overflow-hidden shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
               >
-                <div className="relative aspect-4/3 overflow-hidden">
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#060D1E] via-[#060D1E]/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
-                  <span className="absolute top-3 right-3 bg-[#E5A827] text-[#060D1E] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
-                    {item.tag}
-                  </span>
+                {/* Close Button */}
+                <button
+                  onClick={() => setSelectedMedia(null)}
+                  className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/60 text-white hover:text-[#E5A827] flex items-center justify-center transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                {/* Media Container */}
+                <div className="bg-black relative aspect-video flex items-center justify-center overflow-hidden">
+                  {selectedMedia.mediaType === "youtube" ? (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${
+                        getYouTubeId(selectedMedia.mediaUrl) || ""
+                      }?autoplay=1`}
+                      title={selectedMedia.title}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : selectedMedia.mediaType === "tiktok" ? (
+                    <div className="p-8 text-center space-y-4">
+                      <TikTokIcon className="w-16 h-16 text-[#E5A827] mx-auto" />
+                      <h4 className="text-white font-bold text-lg">
+                        {selectedMedia.title}
+                      </h4>
+                      <p className="text-slate-300 text-xs">
+                        Watch this event reel directly on TikTok
+                      </p>
+                      <a
+                        href={selectedMedia.mediaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#E5A827] text-[#060D1E] font-bold text-sm hover:brightness-110 transition-all"
+                      >
+                        <span>Open in TikTok</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </a>
+                    </div>
+                  ) : selectedMedia.mediaType === "video" ? (
+                    <video
+                      src={selectedMedia.mediaUrl}
+                      controls
+                      autoPlay
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={selectedMedia.mediaUrl || selectedMedia.image}
+                        alt={selectedMedia.title}
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                  )}
                 </div>
 
-                <div className="p-5 space-y-2">
-                  <div className="flex items-center justify-between text-xs text-[#E5A827]">
-                    <span className="font-semibold">{item.category}</span>
-                    <span className="text-slate-400 flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {item.location}
-                    </span>
+                {/* Metadata & Actions */}
+                <div className="p-6 space-y-4 bg-[#081530]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <span className="text-xs font-semibold text-[#E5A827] uppercase tracking-wider">
+                        {selectedMedia.category} &bull; {selectedMedia.location}
+                      </span>
+                      <h3 className="text-xl font-bold text-white mt-1">
+                        {selectedMedia.title}
+                      </h3>
+                    </div>
+                    <a
+                      href="#booking"
+                      onClick={() => setSelectedMedia(null)}
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#1044A3] to-[#1E60D5] text-white font-bold text-xs hover:shadow-lg transition-all"
+                    >
+                      <span>Book For Your Event</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </a>
                   </div>
-                  <h3 className="font-bold text-white text-base group-hover:text-[#E5A827] transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-slate-300 leading-relaxed font-light">
-                    {item.desc}
-                  </p>
+                  {selectedMedia.desc && (
+                    <p className="text-sm text-slate-300 leading-relaxed font-light">
+                      {selectedMedia.desc}
+                    </p>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
 
           {/* Social Feeds Callout (YouTube, TikTok, Facebook) */}
           <div className="mt-12 rounded-2xl p-6 sm:p-8 bg-gradient-to-r from-[#0A204C] to-[#0D1830] border border-[#E5A827]/30 flex flex-col lg:flex-row items-center justify-between gap-6">

@@ -68,6 +68,13 @@ function YoutubeIcon({ className }: { className?: string }) {
   );
 }
 
+function getYouTubeId(url?: string) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+}
+
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passcode, setPasscode] = useState("");
@@ -193,6 +200,7 @@ export default function AdminPage() {
 
     let finalMediaUrl = externalUrl;
     let finalMediaType = "photo";
+    let finalThumbnailUrl: string | undefined = undefined;
 
     // If uploading via Cloudinary direct file
     if (mediaSource === "cloudinary") {
@@ -227,19 +235,28 @@ export default function AdminPage() {
         if (uploadRes.ok) {
           const uploadData = await uploadRes.json();
           finalMediaUrl = uploadData.secure_url;
+          finalThumbnailUrl = isVideo ? undefined : uploadData.secure_url;
           setUploadProgress(80);
         } else {
           // If custom Cloudinary account not yet configured, use local object preview fallback
           finalMediaUrl = filePreview || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80";
+          finalThumbnailUrl = finalMediaUrl;
         }
       } catch (err) {
         console.warn("Cloudinary direct upload fallback:", err);
         finalMediaUrl = filePreview || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80";
+        finalThumbnailUrl = finalMediaUrl;
       }
     } else if (mediaSource === "youtube") {
       finalMediaType = "youtube";
+      finalMediaUrl = externalUrl;
+      const ytId = getYouTubeId(externalUrl);
+      if (ytId) {
+        finalThumbnailUrl = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+      }
     } else if (mediaSource === "tiktok") {
       finalMediaType = "tiktok";
+      finalMediaUrl = externalUrl;
     }
 
     setUploadProgress(90);
@@ -254,7 +271,7 @@ export default function AdminPage() {
           category: mediaCategory,
           mediaType: finalMediaType,
           mediaUrl: finalMediaUrl,
-          thumbnailUrl: finalMediaType === "photo" ? finalMediaUrl : undefined,
+          thumbnailUrl: finalThumbnailUrl,
           location: mediaLocation,
           description: mediaDesc,
         }),
