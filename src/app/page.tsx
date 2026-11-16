@@ -273,6 +273,7 @@ export default function Home() {
 
   // Submission & Success UI State
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmission, setLastSubmission] = useState<any>(null);
 
   const toggleService = (service: string) => {
@@ -281,8 +282,9 @@ export default function Home() {
     );
   };
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     const finalEventType = eventType === "Other Celebration"
       ? `Other (${otherEventDetails || "Special Event"})`
@@ -300,20 +302,31 @@ export default function Home() {
       notes: specialNotes,
     };
 
-    setLastSubmission(submissionData);
-    setBookingConfirmed(true);
+    try {
+      await fetch("/api/booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(submissionData),
+      });
+    } catch (err) {
+      console.warn("Background API dispatch:", err);
+    } finally {
+      setIsSubmitting(false);
+      setLastSubmission(submissionData);
+      setBookingConfirmed(true);
 
-    // Automatically clear all input fields after booking!
-    setClientName("");
-    setClientPhone("");
-    setClientEmail("");
-    setEventType("Wedding");
-    setOtherEventDetails("");
-    setEventDate("");
-    setEventLocation("");
-    setSpecialNotes("");
-    setSelectedServices(["Master of Ceremonies (MC)", "Sound & PA System"]);
-    setGuestCount("100-250");
+      // Automatically clear all input fields after booking!
+      setClientName("");
+      setClientPhone("");
+      setClientEmail("");
+      setEventType("Wedding");
+      setOtherEventDetails("");
+      setEventDate("");
+      setEventLocation("");
+      setSpecialNotes("");
+      setSelectedServices(["Master of Ceremonies (MC)", "Sound & PA System"]);
+      setGuestCount("100-250");
+    }
   };
 
   const filteredGallery =
@@ -1151,10 +1164,20 @@ export default function Home() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#FAD961] to-[#E5A827] hover:from-[#FBE07E] hover:to-[#F1B638] text-[#060D1E] font-black text-sm tracking-wide shadow-[0_10px_25px_rgba(229,168,39,0.35)] flex items-center justify-center gap-3 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                  disabled={isSubmitting}
+                  className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#FAD961] to-[#E5A827] hover:from-[#FBE07E] hover:to-[#F1B638] text-[#060D1E] font-black text-sm tracking-wide shadow-[0_10px_25px_rgba(229,168,39,0.35)] flex items-center justify-center gap-3 transition-all transform hover:-translate-y-0.5 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                 >
-                  <Send className="w-5 h-5" />
-                  <span>Submit Event Reservation</span>
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-[#060D1E] border-t-transparent rounded-full animate-spin" />
+                      <span>Processing &amp; Dispatching Notification...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      <span>Submit Event Reservation</span>
+                    </>
+                  )}
                 </button>
                 <p className="text-center text-xs text-slate-400 mt-3 font-light">
                   🔒 Fast response guaranteed. Your date will be tentatively reserved for follow-up.
