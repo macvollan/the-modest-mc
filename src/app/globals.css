@@ -1,26 +1,49 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --brand-blue: #1044A3;
+    --brand-blue-dark: #0A2D6E;
+    --brand-gold: #E5A827;
+    --brand-gold-light: #F7C85C;
+    --brand-gold-dark: #B57F14;
+    --brand-navy: #071126;
+    --brand-navy-light: #0D1E42;
+    --brand-navy-card: #112652;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #071126;
+    color: #F8FAFC;
+    font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom Gold Gradient Utilities */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #FAD961 0%, #E5A827 50%, #B57F14 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #FAD961 0%, #E5A827 70%, #B57F14 100%);
+}
+
+.blue-gradient-bg {
+  background: linear-gradient(135deg, #1044A3 0%, #0A2D6E 100%);
+}
+
+.card-gradient {
+  background: linear-gradient(180deg, rgba(17, 38, 82, 0.7) 0%, rgba(7, 17, 38, 0.9) 100%);
+  border: 1px solid rgba(229, 168, 39, 0.15);
+}
+
+.card-gradient-hover:hover {
+  border-color: rgba(229, 168, 39, 0.45);
+  box-shadow: 0 10px 30px -10px rgba(229, 168, 39, 0.2);
 }
