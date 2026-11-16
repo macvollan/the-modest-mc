@@ -24,6 +24,11 @@ import {
   Award,
   ShieldCheck,
   Music,
+  Play,
+  Camera,
+  Layers,
+  ChevronRight,
+  Check,
 } from "lucide-react";
 
 const PRIMARY_PHONE = "+254729226453";
@@ -32,12 +37,29 @@ const DISPLAY_PHONE_1 = "+254 729 226 453";
 const DISPLAY_PHONE_2 = "+254 745 558 377";
 const OFFICIAL_EMAIL = "themodestmckenya@gmail.com";
 const YOUTUBE_URL = "https://youtube.com/@modestmckenya";
-const LOCATION_TEXT = "Gwa Kairo, Ruiru, Kiambu County (Serving Nationwide)";
+const TIKTOK_URL = "https://www.tiktok.com/@modestmckenya";
+const FACEBOOK_URL = "https://www.facebook.com/"; // Can be updated with exact page slug
 
 function YoutubeIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
       <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+  );
+}
+
+function TikTokIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.86.12V9.4a6.33 6.33 0 0 0-.86-.06A6.34 6.34 0 0 0 3 15.68a6.34 6.34 0 0 0 10.82 4.49 6.27 6.27 0 0 0 1.86-4.5V8.58a8.28 8.28 0 0 0 4.91 1.6V6.73a4.77 4.77 0 0 1-1-.04z" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
     </svg>
   );
 }
@@ -48,42 +70,72 @@ const SERVICES = [
     title: "Master of Ceremonies (MC)",
     tag: "High Energy & Dignity",
     desc: "Seamless event flow, engaging humor, and vibrant stage presence. From glamorous weddings to executive corporate galas, we keep your guests captivated and on schedule.",
-    features: ["Weddings & Ruracios", "Corporate Dinners & Product Launches", "State & Institutional Functions", "Church & Social Celebrations"],
+    features: [
+      "Weddings & Ruracios",
+      "Corporate Dinners & Product Launches",
+      "State & Institutional Functions",
+      "Church & Social Celebrations",
+    ],
   },
   {
     icon: Volume2,
     title: "Professional Sound & PA Systems",
     tag: "Crystal-Clear Audio",
     desc: "Top-grade digital sound engineering, high-fidelity wireless microphones, acoustic tuning, and backup systems to ensure your speeches and music sound pristine.",
-    features: ["Digital Mixers & Line-Array Speakers", "Wireless Handheld & Lapel Mics", "Pro DJ Setup & Mood Playlists", "Silent Generator Backup Support"],
+    features: [
+      "Digital Mixers & Line-Array Speakers",
+      "Wireless Handheld & Lapel Mics",
+      "Pro DJ Setup & Mood Playlists",
+      "Silent Generator Backup Support",
+    ],
   },
   {
     icon: Users,
     title: "Team Building Facilitation",
     tag: "Synergy & Motivation",
     desc: "High-impact outdoor and indoor team building sessions designed to boost team morale, communication, leadership, and camaraderie with refreshing fun.",
-    features: ["Customized Corporate Games", "Icebreakers & Energizers", "Debrief & Morale Building", "Full Day / Multi-Day Coordination"],
+    features: [
+      "Customized Corporate Games",
+      "Icebreakers & Energizers",
+      "Debrief & Morale Building",
+      "Full Day / Multi-Day Coordination",
+    ],
   },
   {
     icon: PartyPopper,
     title: "Birthdays & Baby Showers",
     tag: "Joy & Milestone Moments",
     desc: "Bringing warmth, pomp, and colour to family milestones. We design interactive games and heartfelt moments that leave lasting memories for your loved ones.",
-    features: ["Milestone Adult & Kids Birthdays", "Baby Showers & Gender Reveals", "Anniversaries & Graduations", "Themed Celebration Hosting"],
+    features: [
+      "Milestone Adult & Kids Birthdays",
+      "Baby Showers & Gender Reveals",
+      "Anniversaries & Graduations",
+      "Themed Celebration Hosting",
+    ],
   },
   {
     icon: Music,
     title: "Event Planning & Coordination",
     tag: "Zero Stress For You",
     desc: "End-to-end event execution. We coordinate service providers, manage schedules, synchronize sound, decor, and protocol so you enjoy every minute as a host.",
-    features: ["Program & Script Drafting", "Vendor & Decor Synergy", "Timekeeping & Protocol Handling", "On-site Crisis Management"],
+    features: [
+      "Program & Script Drafting",
+      "Vendor & Decor Synergy",
+      "Timekeeping & Protocol Handling",
+      "On-site Crisis Management",
+    ],
   },
   {
     icon: Award,
     title: "Special Celebrations & Ruracio",
     tag: "Tradition Meets Pomp",
     desc: "Masterful handling of traditional ceremonies with deep cultural respect, vibrant humor, and coordinated negotiations that honor both families.",
-    features: ["Ruracio & Dowry Ceremonies", "Bridal Showers & Send-offs", "Family Rehearsals & Etiquette", "Bilingual Hosting (English & Swahili)"],
+    features: [
+      "Ruracio & Dowry Ceremonies",
+      "Bridal Showers & Send-offs",
+      "Family Rehearsals & Etiquette",
+      "Bilingual Hosting (English & Swahili)",
+    ],
   },
 ];
 
@@ -104,14 +156,14 @@ const PACKAGES = [
     name: "Pomp & Colour Signature",
     idealFor: "Weddings, Corporate Events & Large Galas",
     highlight: true,
-    badge: "Most Popular",
+    badge: "Signature Experience",
     services: [
       "Headlining MC Services by The Modest MC",
       "Complete High-Definition PA System (Up to 600 Pax)",
       "Dedicated Sound Engineer & Resident Event DJ",
       "Full Reception & Evening Party Hosting",
       "Program & Protocol Coordination",
-      "Client WhatsApp Confirmation & Schedule Sync",
+      "Client Direct Confirmation & Schedule Sync",
     ],
   },
   {
@@ -125,6 +177,57 @@ const PACKAGES = [
       "High-energy Energizers & Awards Ceremony",
       "Detailed Corporate Brief & Debrief Report",
     ],
+  },
+];
+
+const GALLERY_ITEMS = [
+  {
+    title: "Grand Wedding Reception",
+    category: "Weddings",
+    location: "Karen, Nairobi",
+    tag: "Pomp & Colour",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+    desc: "Electrifying bride & groom entrance, seamless program, and royal energy.",
+  },
+  {
+    title: "Corporate Team Building Games",
+    category: "Team Building",
+    location: "Naivasha Resort",
+    tag: "High Energy",
+    image: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80",
+    desc: "Engaging corporate challenges, obstacle courses, and morale-boosting energizers.",
+  },
+  {
+    title: "Vibrant Ruracio Ceremony",
+    category: "Weddings",
+    location: "Kiambu",
+    tag: "Culture & Dignity",
+    image: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80",
+    desc: "Respectful cultural negotiations, bilingual hosting, and vibrant music.",
+  },
+  {
+    title: "Milestone 40th Birthday Gala",
+    category: "Birthdays",
+    location: "Lavington",
+    tag: "Celebration",
+    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
+    desc: "Cake cutting moments, roast-and-toast session, and crowd-moving party music.",
+  },
+  {
+    title: "Line-Array Audio & Sound Engineering",
+    category: "Sound & Setup",
+    location: "Nairobi",
+    tag: "Crystal Audio",
+    image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
+    desc: "High-definition sound dispersion, acoustic calibration, and wireless clarity.",
+  },
+  {
+    title: "Outdoor Corporate End-Year Gala",
+    category: "Corporate",
+    location: "Ruiru",
+    tag: "Executive Excellence",
+    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
+    desc: "Award presentations, executive speeches, and evening celebration dance floor.",
   },
 ];
 
@@ -151,12 +254,14 @@ const REVIEWS = [
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [galleryCategory, setGalleryCategory] = useState("All");
 
   // Booking Form State
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [eventType, setEventType] = useState("Wedding");
+  const [otherEventDetails, setOtherEventDetails] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventLocation, setEventLocation] = useState("");
   const [guestCount, setGuestCount] = useState("100-250");
@@ -166,7 +271,7 @@ export default function Home() {
   ]);
   const [specialNotes, setSpecialNotes] = useState("");
 
-  // Confirmation modal state
+  // Submission & Success UI State
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [lastSubmission, setLastSubmission] = useState<any>(null);
 
@@ -179,102 +284,59 @@ export default function Home() {
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const finalEventType = eventType === "Other Celebration"
+      ? `Other (${otherEventDetails || "Special Event"})`
+      : eventType;
+
     const submissionData = {
       name: clientName,
       phone: clientPhone,
       email: clientEmail,
-      eventType,
+      eventType: finalEventType,
       eventDate,
       eventLocation,
       guestCount,
       services: selectedServices.join(", "),
       notes: specialNotes,
-      submittedAt: new Date().toLocaleDateString("en-KE", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
     };
 
     setLastSubmission(submissionData);
     setBookingConfirmed(true);
 
-    // Build the formatted WhatsApp message for The Modest MC team
-    const teamMessage = encodeURIComponent(
-      `🎉 *NEW EVENT INQUIRY - THE MODEST MC ENTERTAINMENT*\n` +
-      `-----------------------------------------\n` +
-      `👤 *Client Name:* ${clientName}\n` +
-      `📞 *Client Phone:* ${clientPhone}\n` +
-      `📧 *Email:* ${clientEmail || "Not provided"}\n` +
-      `🎈 *Event Type:* ${eventType}\n` +
-      `📅 *Date:* ${eventDate || "To be confirmed"}\n` +
-      `📍 *Location:* ${eventLocation || "Not specified"}\n` +
-      `👥 *Estimated Guests:* ${guestCount}\n` +
-      `🎙️ *Services Needed:* ${selectedServices.join(", ") || "General Inquiry"}\n` +
-      `📝 *Notes:* ${specialNotes || "None"}\n` +
-      `-----------------------------------------\n` +
-      `_Submitted via themodestmc.vercel.app_`
-    );
-
-    // Open WhatsApp to send to The Modest MC
-    window.open(`https://wa.me/${PRIMARY_PHONE.replace("+", "")}?text=${teamMessage}`, "_blank");
+    // Automatically clear all input fields after booking!
+    setClientName("");
+    setClientPhone("");
+    setClientEmail("");
+    setEventType("Wedding");
+    setOtherEventDetails("");
+    setEventDate("");
+    setEventLocation("");
+    setSpecialNotes("");
+    setSelectedServices(["Master of Ceremonies (MC)", "Sound & PA System"]);
+    setGuestCount("100-250");
   };
 
-  // Helper to let client send themselves a WhatsApp confirmation copy
-  const sendClientConfirmation = () => {
-    if (!lastSubmission) return;
-    const cleanPhone = lastSubmission.phone.replace(/[^0-9]/g, "");
-    const formattedClientPhone = cleanPhone.startsWith("0")
-      ? "254" + cleanPhone.slice(1)
-      : cleanPhone.startsWith("254")
-      ? cleanPhone
-      : "254" + cleanPhone;
-
-    const clientMsg = encodeURIComponent(
-      `✨ *BOOKING CONFIRMATION: The Modest MC Entertainment*\n` +
-      `_Bringing Pomp & Colour to Your Event!_\n\n` +
-      `Hello ${lastSubmission.name},\n` +
-      `Thank you for reaching out to *The Modest MC Entertainment*!\n\n` +
-      `📋 *Your Event Details:*\n` +
-      `• *Event:* ${lastSubmission.eventType}\n` +
-      `• *Date:* ${lastSubmission.eventDate || "To be confirmed"}\n` +
-      `• *Location:* ${lastSubmission.eventLocation}\n` +
-      `• *Services:* ${lastSubmission.services}\n\n` +
-      `📍 *Our Office:* Gwa Kairo, Ruiru\n` +
-      `📞 *Hotline:* ${DISPLAY_PHONE_1} / ${DISPLAY_PHONE_2}\n` +
-      `📧 *Email:* ${OFFICIAL_EMAIL}\n` +
-      `📺 *Watch Us on YouTube:* ${YOUTUBE_URL}\n\n` +
-      `🔔 *Note:* Our lead coordinator has received your request and will call you shortly to align on the program and finalize your reservation. An automated reminder will also be scheduled 48 hours prior to your event.`
-    );
-
-    window.open(`https://wa.me/${formattedClientPhone}?text=${clientMsg}`, "_blank");
-  };
+  const filteredGallery =
+    galleryCategory === "All"
+      ? GALLERY_ITEMS
+      : GALLERY_ITEMS.filter((item) => item.category === galleryCategory);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#071126] text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#060D1E] text-slate-100 selection:bg-[#E5A827] selection:text-[#060D1E]">
       {/* Top Banner Notice */}
-      <div className="bg-gradient-to-r from-[#0A2D6E] via-[#1044A3] to-[#0A2D6E] border-b border-[#E5A827]/30 text-xs sm:text-sm py-2 px-4 text-center">
-        <span className="inline-flex items-center gap-2 font-medium text-slate-100">
+      <div className="bg-gradient-to-r from-[#07193D] via-[#0E357F] to-[#07193D] border-b border-[#E5A827]/25 text-xs py-2 px-4 text-center">
+        <span className="inline-flex items-center gap-2 font-medium text-slate-200">
           <Sparkles className="w-3.5 h-3.5 text-[#E5A827]" />
-          <span>Now Booking 2026/2027 Weddings, Corporate Team Buildings & Celebrations</span>
-          <span className="hidden md:inline">• Gwa Kairo, Ruiru & Countrywide</span>
-          <a
-            href={`https://wa.me/${PRIMARY_PHONE.replace("+", "")}`}
-            className="text-[#E5A827] font-semibold underline underline-offset-2 hover:text-amber-300 ml-1"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Chat With Lead MC
-          </a>
+          <span>Now Booking 2026/2027 • Bringing Pomp &amp; Colour to Every Event Across Kenya</span>
         </span>
       </div>
 
       {/* Main Navigation */}
-      <header className="sticky top-0 z-40 backdrop-blur-md bg-[#071126]/90 border-b border-white/10">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#060D1E]/90 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Logo & Brand */}
-          <a href="#" className="flex items-center gap-3 group">
-            <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[#E5A827] shadow-[0_0_15px_rgba(229,168,39,0.3)] transition-transform group-hover:scale-105">
+          <a href="#" className="flex items-center gap-3.5 group">
+            <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[#E5A827] shadow-[0_0_18px_rgba(229,168,39,0.35)] transition-transform group-hover:scale-105">
               <Image
                 src="/logo.jpg"
                 alt="The Modest MC Entertainment Logo"
@@ -284,11 +346,11 @@ export default function Home() {
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold tracking-tight text-base sm:text-lg text-white group-hover:text-[#E5A827] transition-colors leading-tight">
+              <span className="font-black tracking-tight text-base sm:text-lg text-white group-hover:text-[#E5A827] transition-colors leading-tight">
                 THE MODEST MC
               </span>
-              <span className="text-[11px] sm:text-xs text-[#E5A827] font-medium tracking-wider uppercase">
-                Pomp & Colour Entertainment
+              <span className="text-[10px] sm:text-[11px] text-[#E5A827] font-semibold tracking-wider uppercase">
+                Pomp &amp; Colour Entertainment
               </span>
             </div>
           </a>
@@ -297,6 +359,10 @@ export default function Home() {
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
             <a href="#services" className="hover:text-[#E5A827] transition-colors">
               Services
+            </a>
+            <a href="#gallery" className="hover:text-[#E5A827] transition-colors flex items-center gap-1.5">
+              <span>Gallery</span>
+              <span className="text-[10px] bg-[#E5A827]/20 text-[#E5A827] px-1.5 py-0.5 rounded-full font-bold">New</span>
             </a>
             <a href="#packages" className="hover:text-[#E5A827] transition-colors">
               Packages
@@ -307,8 +373,8 @@ export default function Home() {
             <a href="#reviews" className="hover:text-[#E5A827] transition-colors">
               Testimonials
             </a>
-            <a href="#location" className="hover:text-[#E5A827] transition-colors">
-              Ruiru Base
+            <a href="#contact" className="hover:text-[#E5A827] transition-colors">
+              Contact
             </a>
           </nav>
 
@@ -325,7 +391,7 @@ export default function Home() {
             </a>
             <a
               href="#book"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FAD961] to-[#E5A827] hover:from-[#FBE07E] hover:to-[#F1B638] text-[#071126] font-bold px-5 py-2.5 rounded-full text-xs tracking-wide shadow-[0_4px_14px_rgba(229,168,39,0.35)] transition-all transform hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FAD961] to-[#E5A827] hover:from-[#FBE07E] hover:to-[#F1B638] text-[#060D1E] font-extrabold px-5 py-2.5 rounded-full text-xs tracking-wide shadow-[0_4px_15px_rgba(229,168,39,0.35)] transition-all transform hover:-translate-y-0.5"
             >
               <Calendar className="w-4 h-4" />
               <span>Book An Event</span>
@@ -344,13 +410,20 @@ export default function Home() {
 
         {/* Mobile Dropdown */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-[#0A1A3A] border-b border-white/10 px-4 py-6 space-y-4 text-center">
+          <div className="lg:hidden bg-[#0A1A3A] border-b border-white/10 px-4 py-6 space-y-4 text-center animate-in slide-in-from-top-4">
             <a
               href="#services"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 text-slate-200 hover:text-[#E5A827] font-medium"
             >
               Services
+            </a>
+            <a
+              href="#gallery"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-slate-200 hover:text-[#E5A827] font-medium"
+            >
+              Pomp &amp; Colour Gallery
             </a>
             <a
               href="#packages"
@@ -374,17 +447,17 @@ export default function Home() {
               Testimonials
             </a>
             <a
-              href="#location"
+              href="#contact"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 text-slate-200 hover:text-[#E5A827] font-medium"
             >
-              Location & Contact
+              Contact
             </a>
             <div className="pt-2 flex flex-col gap-2">
               <a
                 href="#book"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-3 bg-gradient-to-r from-[#FAD961] to-[#E5A827] text-[#071126] font-bold rounded-lg text-sm"
+                className="w-full py-3 bg-gradient-to-r from-[#FAD961] to-[#E5A827] text-[#060D1E] font-bold rounded-lg text-sm"
               >
                 Book An Event
               </a>
@@ -403,35 +476,35 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-32">
+      <section className="relative overflow-hidden pt-14 pb-20 lg:pt-24 lg:pb-32">
         {/* Glow Effects */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#1044A3]/25 rounded-full blur-[130px] pointer-events-none" />
-        <div className="absolute top-1/3 right-10 w-[350px] h-[350px] bg-[#E5A827]/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#1044A3]/20 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/3 right-10 w-[400px] h-[400px] bg-[#E5A827]/15 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1044A3]/30 border border-[#E5A827]/40 text-[#E5A827] text-xs font-semibold tracking-wider uppercase">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1044A3]/30 border border-[#E5A827]/30 text-[#E5A827] text-xs font-semibold tracking-wider uppercase">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>The Modest MC Entertainment Brings Pomp & Colour</span>
+                <span>The Modest MC Entertainment Brings Pomp &amp; Colour</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.1]">
                 Unforgettable Energy. <br className="hidden sm:inline" />
                 Flawless Sound. <br />
-                <span className="gold-gradient-text">Pure Pomp & Colour.</span>
+                <span className="gold-gradient-text">Pure Pomp &amp; Colour.</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                Elevate your special day with Kenya’s premier Master of Ceremonies, high-definition sound engineering, dynamic team building, and seamless event coordination. Based in <strong>Gwa Kairo, Ruiru</strong>, bringing life to celebrations nationwide.
+              <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-light">
+                Kenya’s premier Master of Ceremonies, high-definition sound engineering, dynamic team building, and seamless event coordination. Turning ordinary milestones into extraordinary celebrations across the nation.
               </p>
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
                 <a
                   href="#book"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#FAD961] to-[#E5A827] hover:from-[#FBE07E] hover:to-[#F1B638] text-[#071126] font-extrabold px-8 py-4 rounded-xl text-sm shadow-[0_10px_25px_-5px_rgba(229,168,39,0.4)] transition-all transform hover:-translate-y-1"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#FAD961] to-[#E5A827] hover:from-[#FBE07E] hover:to-[#F1B638] text-[#060D1E] font-black px-8 py-4 rounded-xl text-sm shadow-[0_10px_25px_-5px_rgba(229,168,39,0.4)] transition-all transform hover:-translate-y-1"
                 >
                   <Calendar className="w-5 h-5" />
                   <span>Reserve Your Date Now</span>
@@ -439,13 +512,11 @@ export default function Home() {
                 </a>
 
                 <a
-                  href={`https://wa.me/${PRIMARY_PHONE.replace("+", "")}?text=Hi%20Modest%20MC,%20I%20am%20interested%20in%20your%20Pomp%20and%20Colour%20event%20packages.`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-[#0D224D] hover:bg-[#122D66] border border-[#1044A3] text-white px-7 py-4 rounded-xl text-sm font-bold transition-all"
+                  href="#gallery"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-[#0C214A] hover:bg-[#112A5E] border border-[#1044A3] text-white px-7 py-4 rounded-xl text-sm font-bold transition-all"
                 >
-                  <MessageCircle className="w-5 h-5 text-[#25D366]" />
-                  <span>WhatsApp Inquiries</span>
+                  <Camera className="w-5 h-5 text-[#E5A827]" />
+                  <span>Explore Event Highlights</span>
                 </a>
               </div>
 
@@ -457,7 +528,7 @@ export default function Home() {
                 </div>
                 <div className="space-y-1">
                   <div className="text-2xl sm:text-3xl font-black text-[#E5A827]">100%</div>
-                  <div className="text-xs text-slate-400">Pomp & Energy</div>
+                  <div className="text-xs text-slate-400">Pomp &amp; Energy</div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-2xl sm:text-3xl font-black text-white">47</div>
@@ -466,9 +537,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right Visual / Logo Badge Card */}
+            {/* Right Visual Crest Card */}
             <div className="lg:col-span-5 flex justify-center">
-              <div className="relative w-72 sm:w-88 md:w-96 aspect-square rounded-3xl p-4 card-gradient shadow-[0_20px_50px_rgba(16,68,163,0.35)] border border-[#E5A827]/30 flex flex-col items-center justify-center text-center">
+              <div className="relative w-72 sm:w-88 md:w-96 aspect-square rounded-3xl p-6 card-gradient shadow-[0_20px_50px_rgba(16,68,163,0.3)] border border-[#E5A827]/30 flex flex-col items-center justify-center text-center">
                 <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden border-4 border-[#E5A827] shadow-[0_0_30px_rgba(229,168,39,0.4)]">
                   <Image
                     src="/logo.jpg"
@@ -479,21 +550,15 @@ export default function Home() {
                   />
                 </div>
 
-                <div className="mt-4 space-y-1">
-                  <h3 className="font-extrabold text-lg text-white tracking-wide">
+                <div className="mt-5 space-y-1">
+                  <h3 className="font-black text-lg text-white tracking-wide">
                     The Modest MC Entertainment
                   </h3>
-                  <p className="text-xs text-[#E5A827] font-semibold flex items-center justify-center gap-1">
+                  <p className="text-xs text-[#E5A827] font-semibold flex items-center justify-center gap-1.5">
                     <Star className="w-3.5 h-3.5 fill-[#E5A827]" />
-                    <span>Bringing Pomp & Colour</span>
+                    <span>Bringing Pomp &amp; Colour</span>
                     <Star className="w-3.5 h-3.5 fill-[#E5A827]" />
                   </p>
-                </div>
-
-                {/* Floating Micro Badge */}
-                <div className="absolute -bottom-4 bg-[#0A1A3A] border border-[#E5A827]/50 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-xs text-slate-200">
-                  <MapPin className="w-3.5 h-3.5 text-[#E5A827]" />
-                  <span>Headquartered in <strong>Gwa Kairo, Ruiru</strong></span>
                 </div>
               </div>
             </div>
@@ -502,7 +567,7 @@ export default function Home() {
       </section>
 
       {/* Services Grid Section */}
-      <section id="services" className="py-20 bg-[#091735]/70 border-y border-white/10 relative">
+      <section id="services" className="py-20 bg-[#081530]/80 border-y border-white/10 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
             <span className="text-xs font-bold text-[#E5A827] tracking-widest uppercase">
@@ -512,7 +577,7 @@ export default function Home() {
               Everything Your Event Needs for <span className="gold-gradient-text">Complete Success</span>
             </h2>
             <p className="text-sm sm:text-base text-slate-300">
-              We specialize in creating an electrifying atmosphere while keeping timelines on track and every guest engaged.
+              We create an electrifying atmosphere, manage time with military precision, and ensure every guest feels celebrated.
             </p>
           </div>
 
@@ -538,7 +603,7 @@ export default function Home() {
                       {s.title}
                     </h3>
 
-                    <p className="text-sm text-slate-300 leading-relaxed">
+                    <p className="text-sm text-slate-300 leading-relaxed font-light">
                       {s.desc}
                     </p>
 
@@ -555,7 +620,17 @@ export default function Home() {
                   <div className="pt-6 mt-4">
                     <a
                       href="#book"
-                      onClick={() => setEventType(s.title.includes("MC") ? "Wedding" : s.title.includes("Sound") ? "Corporate" : "Team Building")}
+                      onClick={() =>
+                        setEventType(
+                          s.title.includes("MC")
+                            ? "Wedding"
+                            : s.title.includes("Sound")
+                            ? "Sound System Rental Only"
+                            : s.title.includes("Team")
+                            ? "Corporate Team Building"
+                            : "Birthday Party"
+                        )
+                      }
                       className="inline-flex items-center gap-2 text-xs font-bold text-[#E5A827] hover:text-white transition-colors"
                     >
                       <span>Inquire About This Service</span>
@@ -569,8 +644,130 @@ export default function Home() {
         </div>
       </section>
 
+      {/* NEW: Pomp & Colour Media Gallery Section */}
+      <section id="gallery" className="py-20 bg-[#060D1E] relative border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div className="space-y-3 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5A827]/10 text-[#E5A827] text-xs font-semibold">
+                <Camera className="w-3.5 h-3.5" />
+                <span>Publicity &amp; Event Media Showcase</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+                The <span className="gold-gradient-text">&quot;Pomp &amp; Colour&quot;</span> Gallery
+              </h2>
+              <p className="text-sm text-slate-300">
+                Browse through real event snapshots, high-energy celebrations, sound setups, and corporate facilitation sessions.
+              </p>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap gap-2">
+              {["All", "Weddings", "Corporate", "Team Building", "Birthdays", "Sound & Setup"].map(
+                (cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setGalleryCategory(cat)}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      galleryCategory === cat
+                        ? "bg-[#E5A827] text-[#060D1E] shadow-md font-bold"
+                        : "bg-[#0A1A3A] text-slate-400 hover:text-white border border-white/10"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+
+          {/* Gallery Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredGallery.map((item, idx) => (
+              <div
+                key={idx}
+                className="group relative rounded-2xl overflow-hidden card-gradient border border-white/10 hover:border-[#E5A827]/50 transition-all duration-300"
+              >
+                <div className="relative aspect-4/3 overflow-hidden">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#060D1E] via-[#060D1E]/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+                  <span className="absolute top-3 right-3 bg-[#E5A827] text-[#060D1E] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                    {item.tag}
+                  </span>
+                </div>
+
+                <div className="p-5 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-[#E5A827]">
+                    <span className="font-semibold">{item.category}</span>
+                    <span className="text-slate-400 flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {item.location}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-white text-base group-hover:text-[#E5A827] transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-relaxed font-light">
+                    {item.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Social Feeds Callout (YouTube, TikTok, Facebook) */}
+          <div className="mt-12 rounded-2xl p-6 sm:p-8 bg-gradient-to-r from-[#0A204C] to-[#0D1830] border border-[#E5A827]/30 flex flex-col lg:flex-row items-center justify-between gap-6">
+            <div className="space-y-1 text-center lg:text-left">
+              <h4 className="font-extrabold text-white text-lg sm:text-xl">
+                Watch Full Videos &amp; Event Reels Online
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-300">
+                Follow our official accounts for live entrance videos, comedy clips, and team building highlights.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <a
+                href={YOUTUBE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow"
+              >
+                <YoutubeIcon className="w-4 h-4" />
+                <span>YouTube @modestmckenya</span>
+              </a>
+
+              <a
+                href={TIKTOK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-black hover:bg-zinc-900 border border-white/20 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow"
+              >
+                <TikTokIcon className="w-4 h-4" />
+                <span>TikTok @modestmckenya</span>
+              </a>
+
+              <a
+                href={FACEBOOK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-[#1877F2] hover:bg-[#1565cc] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow"
+              >
+                <FacebookIcon className="w-4 h-4" />
+                <span>Facebook Page</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Packages Section */}
-      <section id="packages" className="py-20 bg-[#071126] relative">
+      <section id="packages" className="py-20 bg-[#081530]/60 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
             <span className="text-xs font-bold text-[#E5A827] tracking-widest uppercase">
@@ -595,7 +792,7 @@ export default function Home() {
                 }`}
               >
                 {pkg.badge && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#FAD961] to-[#E5A827] text-[#071126] text-xs font-extrabold px-4 py-1 rounded-full uppercase tracking-wider shadow-md">
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#FAD961] to-[#E5A827] text-[#060D1E] text-xs font-black px-4 py-1 rounded-full uppercase tracking-wider shadow-md">
                     {pkg.badge}
                   </span>
                 )}
@@ -621,7 +818,7 @@ export default function Home() {
                     href="#book"
                     className={`w-full py-3.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                       pkg.highlight
-                        ? "bg-gradient-to-r from-[#FAD961] to-[#E5A827] text-[#071126] hover:brightness-110 shadow-lg"
+                        ? "bg-gradient-to-r from-[#FAD961] to-[#E5A827] text-[#060D1E] hover:brightness-110 shadow-lg"
                         : "bg-[#1044A3]/40 hover:bg-[#1044A3] text-white border border-[#1044A3]"
                     }`}
                   >
@@ -636,20 +833,20 @@ export default function Home() {
       </section>
 
       {/* About The Modest MC Section */}
-      <section id="about" className="py-20 bg-[#0A1A3A] border-y border-white/10">
+      <section id="about" className="py-20 bg-[#060D1E] border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-5 flex justify-center">
               <div className="relative w-full max-w-md aspect-4/3 rounded-2xl overflow-hidden card-gradient border border-[#E5A827]/30 p-8 flex flex-col justify-between">
                 <div className="space-y-2">
                   <span className="text-xs text-[#E5A827] font-bold uppercase tracking-wider">
-                    Our Core Promise
+                    Our Philosophy
                   </span>
                   <h3 className="text-2xl font-black text-white">
                     Why We Say &quot;Pomp and Colour&quot;
                   </h3>
-                  <p className="text-sm text-slate-300 leading-relaxed pt-2">
-                    An event is not just a gathering—it is a once-in-a-lifetime milestone. We bring decorum, high energy, laughter, and organized celebration without dull lulls or awkward moments.
+                  <p className="text-sm text-slate-300 leading-relaxed pt-2 font-light">
+                    An event is a once-in-a-lifetime milestone. We combine decorum, electric crowd engagement, and coordinated celebration so that hosts feel relaxed and guests leave exhilarated.
                   </p>
                 </div>
 
@@ -659,7 +856,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h4 className="font-bold text-white text-sm">The Modest MC</h4>
-                    <p className="text-xs text-[#E5A827]">Lead Facilitator & Host</p>
+                    <p className="text-xs text-[#E5A827]">Lead Facilitator &amp; Host</p>
                   </div>
                 </div>
               </div>
@@ -675,51 +872,30 @@ export default function Home() {
                 </h2>
               </div>
 
-              <p className="text-slate-300 leading-relaxed text-sm sm:text-base">
-                Established with a vision to revolutionize event hosting in Kenya, <strong>The Modest MC Entertainment</strong> is known for delivering high-standard professionalism combined with infectious Kenyan celebration energy.
+              <p className="text-slate-300 leading-relaxed text-sm sm:text-base font-light">
+                Established with a passion to redefine event hosting across Kenya, <strong>The Modest MC Entertainment</strong> blends corporate poise with unreserved Kenyan celebration energy. Whether it is keeping 1,000 corporate delegates engaged or guiding families through a blessed wedding, we guarantee perfection.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-xl bg-[#071126] border border-white/5 space-y-1.5">
+                <div className="p-4 rounded-xl bg-[#091735] border border-white/10 space-y-1.5">
                   <div className="flex items-center gap-2 text-white font-bold text-sm">
                     <ShieldCheck className="w-4 h-4 text-[#E5A827]" />
-                    <span>Punctuality & Decorum</span>
+                    <span>Punctuality &amp; Decorum</span>
                   </div>
-                  <p className="text-xs text-slate-400">
-                    We arrive early, soundcheck thoroughly, and maintain respect across all cultural and corporate protocols.
+                  <p className="text-xs text-slate-400 font-light">
+                    Early setup, meticulous sound checks, and total adherence to event protocol.
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#071126] border border-white/5 space-y-1.5">
+                <div className="p-4 rounded-xl bg-[#091735] border border-white/10 space-y-1.5">
                   <div className="flex items-center gap-2 text-white font-bold text-sm">
                     <HeartHandshake className="w-4 h-4 text-[#E5A827]" />
-                    <span>Audience Connection</span>
+                    <span>Universal Connection</span>
                   </div>
-                  <p className="text-xs text-slate-400">
-                    Natural charisma that connects with both the elderly and the youth, creating a warm, inclusive celebration.
+                  <p className="text-xs text-slate-400 font-light">
+                    Natural charisma that bridges elders, youths, and executives with humor and respect.
                   </p>
                 </div>
-              </div>
-
-              {/* YouTube Link Banner */}
-              <div className="p-5 rounded-2xl bg-red-950/20 border border-red-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white shrink-0">
-                    <YoutubeIcon className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">Official YouTube Channel</h4>
-                    <p className="text-xs text-slate-300">Watch highlight videos & live hosting clips at @modestmckenya</p>
-                  </div>
-                </div>
-                <a
-                  href={YOUTUBE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2.5 rounded-lg whitespace-nowrap transition-colors"
-                >
-                  Visit Channel
-                </a>
               </div>
             </div>
           </div>
@@ -727,14 +903,14 @@ export default function Home() {
       </section>
 
       {/* Testimonials */}
-      <section id="reviews" className="py-20 bg-[#071126]">
+      <section id="reviews" className="py-20 bg-[#081530]/70 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
             <span className="text-xs font-bold text-[#E5A827] tracking-widest uppercase">
               Client Feedback
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
-              Loved by Hosts & Audiences
+              Loved by Hosts &amp; Audiences
             </h2>
           </div>
 
@@ -747,7 +923,7 @@ export default function Home() {
                       <Star key={i} className="w-4 h-4 fill-[#E5A827]" />
                     ))}
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-300 italic leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-300 italic leading-relaxed font-light">
                     &quot;{rev.text}&quot;
                   </p>
                 </div>
@@ -762,24 +938,25 @@ export default function Home() {
       </section>
 
       {/* Interactive Booking & Appointment Section */}
-      <section id="book" className="py-20 bg-gradient-to-b from-[#091735] to-[#071126] border-t border-white/10 relative">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="book" className="py-20 bg-gradient-to-b from-[#081530] to-[#060D1E] border-t border-white/10 relative">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5A827]/10 border border-[#E5A827]/30 text-[#E5A827] text-xs font-semibold">
               <Calendar className="w-3.5 h-3.5" />
-              <span>Instant Appointment & Quote Booking</span>
+              <span>Direct Event Reservation &amp; Quotation</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
               Book The Modest MC For Your Date
             </h2>
             <p className="text-sm text-slate-300">
-              Fill in your event details below. You will receive an instant confirmation on WhatsApp and an automated reminder will be scheduled for your date.
+              Submit your inquiry below. All details are immediately processed and recorded directly for your event date.
             </p>
           </div>
 
+          {/* Form Card */}
           <div className="card-gradient rounded-3xl p-6 sm:p-10 border border-[#E5A827]/30 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
             <form onSubmit={handleBookingSubmit} className="space-y-6">
-              {/* Row 1: Name and WhatsApp Number */}
+              {/* Row 1: Name and Phone Number */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">
@@ -791,13 +968,13 @@ export default function Home() {
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="e.g. Dennis Kamau / Safaricom Team"
-                    className="w-full bg-[#071126] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
+                    className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">
-                    Your WhatsApp Phone Number <span className="text-[#E5A827]">*</span>
+                    Your Phone / WhatsApp Number <span className="text-[#E5A827]">*</span>
                   </label>
                   <input
                     type="tel"
@@ -805,11 +982,8 @@ export default function Home() {
                     value={clientPhone}
                     onChange={(e) => setClientPhone(e.target.value)}
                     placeholder="e.g. 0712 345 678 or +254..."
-                    className="w-full bg-[#071126] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
+                    className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                   />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Your confirmation & event reminders will be sent to this WhatsApp number.
-                  </p>
                 </div>
               </div>
 
@@ -824,7 +998,7 @@ export default function Home() {
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
                     placeholder="e.g. name@example.com"
-                    className="w-full bg-[#071126] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
+                    className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                   />
                 </div>
 
@@ -837,12 +1011,12 @@ export default function Home() {
                     required
                     value={eventDate}
                     onChange={(e) => setEventDate(e.target.value)}
-                    className="w-full bg-[#071126] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
+                    className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                   />
                 </div>
               </div>
 
-              {/* Row 3: Event Type & Venue Location */}
+              {/* Row 3: Event Category & Location */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">
@@ -851,7 +1025,7 @@ export default function Home() {
                   <select
                     value={eventType}
                     onChange={(e) => setEventType(e.target.value)}
-                    className="w-full bg-[#071126] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E5A827] transition-colors"
+                    className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E5A827] transition-colors"
                   >
                     <option value="Wedding">Wedding Celebration</option>
                     <option value="Ruracio / Traditional Ceremony">Ruracio / Traditional Ceremony</option>
@@ -873,11 +1047,28 @@ export default function Home() {
                     required
                     value={eventLocation}
                     onChange={(e) => setEventLocation(e.target.value)}
-                    placeholder="e.g. Ruiru, Thika, Nairobi, Naivasha..."
-                    className="w-full bg-[#071126] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
+                    placeholder="e.g. Ruiru, Nairobi, Naivasha, Nakuru..."
+                    className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                   />
                 </div>
               </div>
+
+              {/* NEW: Conditional Input for "Other Celebration" */}
+              {eventType === "Other Celebration" && (
+                <div className="p-4 rounded-xl bg-[#1044A3]/20 border border-[#E5A827]/40 animate-in fade-in duration-300">
+                  <label className="block text-xs font-bold text-[#E5A827] uppercase tracking-wider mb-2">
+                    Please Specify Your Event Type <span className="text-white">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={otherEventDetails}
+                    onChange={(e) => setOtherEventDetails(e.target.value)}
+                    placeholder="e.g. Product Launch, Graduation Party, Church Crusade, Housewarming..."
+                    className="w-full bg-[#060D1E] border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#E5A827]"
+                  />
+                </div>
+              )}
 
               {/* Expected Guest Count */}
               <div>
@@ -893,7 +1084,7 @@ export default function Home() {
                       className={`py-2.5 px-3 rounded-lg text-xs font-semibold border transition-all ${
                         guestCount === count
                           ? "bg-[#1044A3] border-[#E5A827] text-white"
-                          : "bg-[#071126] border-white/10 text-slate-400 hover:border-white/30"
+                          : "bg-[#060D1E] border-white/10 text-slate-400 hover:border-white/30"
                       }`}
                     >
                       {count}
@@ -923,14 +1114,14 @@ export default function Home() {
                         className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between text-xs font-medium transition-all ${
                           active
                             ? "bg-[#1044A3]/30 border-[#E5A827] text-white"
-                            : "bg-[#071126] border-white/10 text-slate-400 hover:border-white/25"
+                            : "bg-[#060D1E] border-white/10 text-slate-400 hover:border-white/25"
                         }`}
                       >
                         <span>{service}</span>
                         <div
                           className={`w-5 h-5 rounded-md flex items-center justify-center border ${
                             active
-                              ? "bg-[#E5A827] border-[#E5A827] text-[#071126]"
+                              ? "bg-[#E5A827] border-[#E5A827] text-[#060D1E]"
                               : "border-white/20"
                           }`}
                         >
@@ -951,8 +1142,8 @@ export default function Home() {
                   rows={3}
                   value={specialNotes}
                   onChange={(e) => setSpecialNotes(e.target.value)}
-                  placeholder="Tell us about your theme, preferred start time, or any specific moments you want us to highlight..."
-                  className="w-full bg-[#071126] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
+                  placeholder="Tell us about your event theme, specific timings, or any special requests..."
+                  className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                 />
               </div>
 
@@ -960,13 +1151,13 @@ export default function Home() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#FAD961] to-[#E5A827] hover:from-[#FBE07E] hover:to-[#F1B638] text-[#071126] font-black text-sm tracking-wide shadow-[0_10px_25px_rgba(229,168,39,0.4)] flex items-center justify-center gap-3 transition-all transform hover:-translate-y-0.5"
+                  className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#FAD961] to-[#E5A827] hover:from-[#FBE07E] hover:to-[#F1B638] text-[#060D1E] font-black text-sm tracking-wide shadow-[0_10px_25px_rgba(229,168,39,0.35)] flex items-center justify-center gap-3 transition-all transform hover:-translate-y-0.5 cursor-pointer"
                 >
                   <Send className="w-5 h-5" />
-                  <span>Submit Booking & Open WhatsApp Confirmation</span>
+                  <span>Submit Event Reservation</span>
                 </button>
-                <p className="text-center text-xs text-slate-400 mt-3">
-                  🔒 Fast response within 1 hour. No advance commitment required for initial quote.
+                <p className="text-center text-xs text-slate-400 mt-3 font-light">
+                  🔒 Fast response guaranteed. Your date will be tentatively reserved for follow-up.
                 </p>
               </div>
             </form>
@@ -974,10 +1165,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Confirmation Modal */}
+      {/* Confirmation & Success Modal */}
       {bookingConfirmed && lastSubmission && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#0A1A3A] border-2 border-[#E5A827] rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="bg-[#0A1A3A] border-2 border-[#E5A827] rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative animate-in zoom-in-95">
             <button
               onClick={() => setBookingConfirmed(false)}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white"
@@ -987,25 +1178,25 @@ export default function Home() {
 
             <div className="text-center space-y-2">
               <div className="w-16 h-16 rounded-full bg-[#E5A827]/20 border border-[#E5A827] flex items-center justify-center mx-auto text-[#E5A827]">
-                <CheckCircle2 className="w-8 h-8" />
+                <Check className="w-8 h-8 stroke-[3]" />
               </div>
-              <h3 className="text-2xl font-black text-white">Booking Inquiry Submitted!</h3>
+              <h3 className="text-2xl font-black text-white">Booking Inquiry Received!</h3>
               <p className="text-xs text-[#E5A827] font-semibold">
                 Bringing Pomp and Colour to your celebration 🎉
               </p>
             </div>
 
-            <div className="bg-[#071126] rounded-2xl p-4 border border-white/10 space-y-2 text-xs text-slate-300">
+            <div className="bg-[#060D1E] rounded-2xl p-4 border border-white/10 space-y-2.5 text-xs text-slate-300">
               <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-400">Client:</span>
+                <span className="text-slate-400">Client Name:</span>
                 <span className="font-bold text-white">{lastSubmission.name}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-400">Phone:</span>
+                <span className="text-slate-400">Contact Phone:</span>
                 <span className="font-bold text-white">{lastSubmission.phone}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-400">Event:</span>
+                <span className="text-slate-400">Event Type:</span>
                 <span className="font-bold text-white">{lastSubmission.eventType}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-white/5">
@@ -1013,7 +1204,7 @@ export default function Home() {
                 <span className="font-bold text-white">{lastSubmission.eventDate || "To be confirmed"}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-400">Location:</span>
+                <span className="text-slate-400">Venue:</span>
                 <span className="font-bold text-white">{lastSubmission.eventLocation}</span>
               </div>
               <div className="flex justify-between py-1">
@@ -1023,57 +1214,68 @@ export default function Home() {
             </div>
 
             <div className="space-y-3">
-              <button
-                onClick={sendClientConfirmation}
-                className="w-full py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
+              <p className="text-xs text-center text-slate-300 leading-relaxed">
+                Thank you, <strong>{lastSubmission.name}</strong>! Your event details have been submitted. Our team will review the date and call you directly on <strong>{lastSubmission.phone}</strong>.
+              </p>
+
+              {/* Optional WhatsApp Direct Chat if client chooses to open it */}
+              <a
+                href={`https://wa.me/${PRIMARY_PHONE.replace("+", "")}?text=${encodeURIComponent(
+                  `🎉 Hello The Modest MC, I just submitted an inquiry on the website for my ${lastSubmission.eventType} on ${lastSubmission.eventDate || "upcoming date"} at ${lastSubmission.eventLocation}. My name is ${lastSubmission.name}.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>Send WhatsApp Receipt to My Phone ({lastSubmission.phone})</span>
-              </button>
+                <span>Chat Directly on WhatsApp (Optional)</span>
+              </a>
 
               <button
                 onClick={() => setBookingConfirmed(false)}
                 className="w-full py-3 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition-colors"
               >
-                Close & Return to Website
+                Done / Close Window
               </button>
             </div>
-
-            <p className="text-[11px] text-center text-slate-400">
-              🔔 An automated reminder has been scheduled for your date ({lastSubmission.eventDate}). The Modest MC team will call you shortly.
-            </p>
           </div>
         </div>
       )}
 
-      {/* Location & Physical Presence Section */}
-      <section id="location" className="py-16 bg-[#071126] border-t border-white/10">
+      {/* Contact & Nationwide Presence Section */}
+      <section id="contact" className="py-16 bg-[#060D1E] border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl p-8 sm:p-12 card-gradient border border-[#E5A827]/30 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1044A3]/30 text-[#E5A827] text-xs font-semibold">
                 <MapPin className="w-3.5 h-3.5" />
-                <span>Physical Base & Service Radius</span>
+                <span>Contact &amp; Event Consultations</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-                Located in Gwa Kairo, Ruiru
+                Ready to Bring Pomp &amp; Colour to Your Date?
               </h2>
-              <p className="text-sm text-slate-300 leading-relaxed">
-                Strategically situated along the Thika Superhighway corridor at <strong>Gwa Kairo, Ruiru</strong>. We provide swift sound dispatch, on-site event rehearsals, and in-person consultations across Kiambu, Nairobi, Machakos, Murang&apos;a, and all 47 counties of Kenya.
+              <p className="text-sm text-slate-300 leading-relaxed font-light">
+                Available for in-person consultations, sound checks, and event hosting across Nairobi, Kiambu, Machakos, Nakuru, and all 47 counties of Kenya.
               </p>
 
-              <div className="space-y-2 pt-2">
+              <div className="space-y-2.5 pt-2">
                 <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-200">
                   <Phone className="w-4 h-4 text-[#E5A827]" />
-                  <span><strong>Call / WhatsApp:</strong> {DISPLAY_PHONE_1} | {DISPLAY_PHONE_2}</span>
+                  <span>
+                    <strong>Call / WhatsApp:</strong> {DISPLAY_PHONE_1} | {DISPLAY_PHONE_2}
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-200">
                   <Mail className="w-4 h-4 text-[#E5A827]" />
-                  <span><strong>Official Email:</strong> {OFFICIAL_EMAIL}</span>
+                  <span>
+                    <strong>Official Email:</strong> {OFFICIAL_EMAIL}
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-200">
-                  <YoutubeIcon className="w-4 h-4 text-red-500" />
-                  <span><strong>YouTube:</strong> @modestmckenya</span>
+                  <MapPin className="w-4 h-4 text-[#E5A827]" />
+                  <span>
+                    <strong>Physical Office:</strong> Gwa Kairo, Ruiru
+                  </span>
                 </div>
               </div>
             </div>
@@ -1083,19 +1285,19 @@ export default function Home() {
                 <Clock className="w-7 h-7" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-base font-bold text-white">Event Consultations & Rehearsals</h4>
+                <h4 className="text-base font-bold text-white">Event Inquiries &amp; Consultations</h4>
                 <p className="text-xs text-slate-300">
                   Monday to Saturday: 8:00 AM – 7:00 PM <br />
-                  Events Hosted: 24/7 Nationwide
+                  Events Hosted: 24/7 Countrywide
                 </p>
               </div>
               <a
-                href={`https://wa.me/${PRIMARY_PHONE.replace("+", "")}?text=Hello%20The%20Modest%20MC,%20I%20would%20like%20to%20plan%20a%20meeting%20or%20event%20consultation.`}
+                href={`https://wa.me/${PRIMARY_PHONE.replace("+", "")}?text=Hello%20The%20Modest%20MC,%20I%20would%20like%20to%20plan%20an%20event%20consultation.`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-xs font-bold text-[#E5A827] hover:underline"
               >
-                <span>Schedule a Consultation in Ruiru</span>
+                <span>Schedule a Consultation</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>
@@ -1104,25 +1306,65 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#050D1E] border-t border-white/10 py-12 text-slate-400 text-xs">
+      <footer className="bg-[#040814] border-t border-white/10 py-12 text-slate-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full overflow-hidden relative border border-[#E5A827]">
                   <Image src="/logo.jpg" alt="Logo" fill className="object-cover" />
                 </div>
-                <span className="font-extrabold text-white text-sm">THE MODEST MC</span>
+                <span className="font-black text-white text-sm">THE MODEST MC</span>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                Bringing Pomp and Colour to every wedding, corporate function, and celebration in Kenya.
+              <p className="text-[11px] text-slate-400 leading-relaxed font-light">
+                Bringing Pomp and Colour to every wedding, corporate event, and family celebration in Kenya.
               </p>
+              {/* Social Icons Row */}
+              <div className="flex items-center gap-3 pt-2">
+                <a
+                  href={YOUTUBE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-600 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                  aria-label="YouTube"
+                >
+                  <YoutubeIcon className="w-4 h-4" />
+                </a>
+                <a
+                  href={TIKTOK_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-black border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                  aria-label="TikTok"
+                >
+                  <TikTokIcon className="w-4 h-4" />
+                </a>
+                <a
+                  href={FACEBOOK_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-[#1877F2] flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                  aria-label="Facebook"
+                >
+                  <FacebookIcon className="w-4 h-4" />
+                </a>
+                <a
+                  href={`https://wa.me/${PRIMARY_PHONE.replace("+", "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-[#25D366] flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                  aria-label="WhatsApp"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </a>
+              </div>
             </div>
 
             <div>
               <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-3">Quick Links</h4>
               <ul className="space-y-2">
                 <li><a href="#services" className="hover:text-[#E5A827]">Services</a></li>
+                <li><a href="#gallery" className="hover:text-[#E5A827]">Gallery</a></li>
                 <li><a href="#packages" className="hover:text-[#E5A827]">Packages</a></li>
                 <li><a href="#about" className="hover:text-[#E5A827]">About Us</a></li>
                 <li><a href="#book" className="hover:text-[#E5A827]">Book An Event</a></li>
@@ -1133,15 +1375,15 @@ export default function Home() {
               <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-3">Services</h4>
               <ul className="space-y-2">
                 <li>Master of Ceremonies (MC)</li>
-                <li>Sound & PA Systems</li>
+                <li>Sound &amp; PA Systems</li>
                 <li>Corporate Team Building</li>
-                <li>Birthdays & Showers</li>
+                <li>Birthdays &amp; Showers</li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-3">Direct Contact</h4>
-              <p className="text-[11px] text-slate-400 leading-relaxed mb-2">
+              <p className="text-[11px] text-slate-400 leading-relaxed mb-2 font-light">
                 Gwa Kairo, Ruiru, Kenya <br />
                 {DISPLAY_PHONE_1} <br />
                 {DISPLAY_PHONE_2} <br />
@@ -1154,23 +1396,13 @@ export default function Home() {
             <p className="text-[11px]">
               &copy; 2026 The Modest MC Entertainment. All rights reserved. Slogan: &quot;Bringing Pomp &amp; Colour&quot;.
             </p>
-            <div className="flex items-center gap-4">
-              <a
-                href={YOUTUBE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
-              >
+            <div className="flex items-center gap-4 text-slate-400">
+              <a href={YOUTUBE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
                 YouTube: @modestmckenya
               </a>
               <span>•</span>
-              <a
-                href={`https://wa.me/${PRIMARY_PHONE.replace("+", "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[#25D366] transition-colors"
-              >
-                WhatsApp Direct
+              <a href={TIKTOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                TikTok: @modestmckenya
               </a>
             </div>
           </div>
