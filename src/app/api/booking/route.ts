@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { saveBooking, getBookings, updateBookingStatus } from "@/lib/db";
 
 interface BookingRequest {
   name: string;
@@ -12,7 +13,6 @@ interface BookingRequest {
   notes?: string;
 }
 
-// Format Kenyan & international numbers for WhatsApp Cloud API (e.g. 07XXXXXXXX -> 2547XXXXXXXX)
 function formatWhatsAppNumber(phone: string): string {
   const digits = phone.replace(/[^0-9]/g, "");
   if (digits.startsWith("0")) {
@@ -24,7 +24,6 @@ function formatWhatsAppNumber(phone: string): string {
   return digits;
 }
 
-// Official Modest MC Admin Alert Numbers
 const ADMIN_PHONES = ["254745558377", "254729226453"];
 
 async function sendWhatsApp(metaUrl: string, token: string, to: string, text: string) {
@@ -53,6 +52,31 @@ async function sendWhatsApp(metaUrl: string, token: string, to: string, text: st
   }
 }
 
+// GET: Fetch all bookings for the Admin Dashboard
+export async function GET(req: Request) {
+  try {
+    const bookings = await getBookings();
+    return NextResponse.json({ success: true, bookings });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// PATCH: Update booking status (e.g. pending -> confirmed -> completed)
+export async function PATCH(req: Request) {
+  try {
+    const { id, status } = await req.json();
+    if (!id || !status) {
+      return NextResponse.json({ error: "id and status required" }, { status: 400 });
+    }
+    await updateBookingStatus(Number(id), status);
+    return NextResponse.json({ success: true, id, status });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// POST: Save booking to DB and dispatch WhatsApp notifications
 export async function POST(req: Request) {
   try {
     const data: BookingRequest = await req.json();
@@ -76,6 +100,19 @@ export async function POST(req: Request) {
       );
     }
 
+    // 1. Persist booking to Database (Neon / In-memory fallback)
+    const savedRecord = await saveBooking({
+      name,
+      phone,
+      email,
+      eventType,
+      eventDate,
+      eventLocation,
+      guestCount,
+      services,
+      notes,
+    });
+
     const clientPhone = formatWhatsAppNumber(phone);
     const whatsappToken = process.env.WHATSAPP_ACCESS_TOKEN;
     const whatsappPhoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
@@ -83,10 +120,11 @@ export async function POST(req: Request) {
     let clientMessageStatus = { sent: false, details: null as any };
     const adminStatuses: Record<string, boolean> = {};
 
+    // 2. Dispatch WhatsApp Notifications if configured
     if (whatsappToken && whatsappPhoneNumberId) {
       const metaUrl = `https://graph.facebook.com/v20.0/${whatsappPhoneNumberId}/messages`;
 
-      // 1. Direct Confirmation Message to the Client
+      // Confirmation to Client
       const clientMessageBody =
         `✨ *The Modest MC Entertainment - Reservation Received*\n` +
         `_Bringing Pomp & Colour to Every Event!_\n\n` +
@@ -110,7 +148,7 @@ export async function POST(req: Request) {
       );
       clientMessageStatus = { sent: clientSend.ok, details: clientSend.data || clientSend.error };
 
-      // 2. Alert Sent to BOTH Admin Numbers (0745558377 & 0729226453)
+      // Alert to Both Admin Numbers
       const adminMessageBody =
         `🚨 *NEW EVENT BOOKING RECEIVED - THE MODEST MC*\n` +
         `-----------------------------------------\n` +
@@ -140,13 +178,12 @@ export async function POST(req: Request) {
           }
         })
       );
-    } else {
-      console.log("WhatsApp Cloud API keys missing in environment.");
     }
 
     return NextResponse.json({
       success: true,
-      message: "Booking received and processed",
+      message: "Booking received and saved to database",
+      bookingId: savedRecord?.id,
       sentToClient: clientMessageStatus.sent,
       clientPhone,
       adminStatuses,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Mic,
@@ -255,6 +255,29 @@ const REVIEWS = [
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [galleryCategory, setGalleryCategory] = useState("All");
+  const [liveGallery, setLiveGallery] = useState(GALLERY_ITEMS);
+
+  useEffect(() => {
+    fetch("/api/gallery")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.items && data.items.length > 0) {
+          const mapped = data.items.map((item: any) => ({
+            title: item.title,
+            category: item.category,
+            location: item.location || "Kenya",
+            tag: item.category,
+            image:
+              item.media_url ||
+              item.thumbnail_url ||
+              "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+            desc: item.description || "Bringing Pomp and Colour to celebrations across Kenya.",
+          }));
+          setLiveGallery(mapped);
+        }
+      })
+      .catch((err) => console.warn("Live gallery fetch:", err));
+  }, []);
 
   // Booking Form State
   const [clientName, setClientName] = useState("");
@@ -331,8 +354,8 @@ export default function Home() {
 
   const filteredGallery =
     galleryCategory === "All"
-      ? GALLERY_ITEMS
-      : GALLERY_ITEMS.filter((item) => item.category === galleryCategory);
+      ? liveGallery
+      : liveGallery.filter((item) => item.category === galleryCategory);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#060D1E] text-slate-100 selection:bg-[#E5A827] selection:text-[#060D1E]">
@@ -1391,6 +1414,7 @@ export default function Home() {
                 <li><a href="#packages" className="hover:text-[#E5A827]">Packages</a></li>
                 <li><a href="#about" className="hover:text-[#E5A827]">About Us</a></li>
                 <li><a href="#book" className="hover:text-[#E5A827]">Book An Event</a></li>
+                <li className="pt-1"><a href="/admin" className="text-slate-500 hover:text-[#E5A827] text-[11px] flex items-center gap-1"><span>Staff Portal</span> &rarr;</a></li>
               </ul>
             </div>
 
