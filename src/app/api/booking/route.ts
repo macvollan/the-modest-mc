@@ -12,7 +12,7 @@ interface BookingRequest {
   notes?: string;
 }
 
-// Helper to format Kenyan and international phone numbers for WhatsApp Cloud API (e.g., 2547XXXXXXXX)
+// Format Kenyan & international numbers for WhatsApp Cloud API (e.g. 07XXXXXXXX -> 2547XXXXXXXX)
 function formatWhatsAppNumber(phone: string): string {
   const digits = phone.replace(/[^0-9]/g, "");
   if (digits.startsWith("0")) {
@@ -22,6 +22,35 @@ function formatWhatsAppNumber(phone: string): string {
     return digits;
   }
   return digits;
+}
+
+// Official Modest MC Admin Alert Numbers
+const ADMIN_PHONES = ["254745558377", "254729226453"];
+
+async function sendWhatsApp(metaUrl: string, token: string, to: string, text: string) {
+  try {
+    const res = await fetch(metaUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to,
+        type: "text",
+        text: {
+          preview_url: false,
+          body: text,
+        },
+      }),
+    });
+    const data = await res.json();
+    return { ok: res.ok, data };
+  } catch (err: any) {
+    return { ok: false, error: err.message };
+  }
 }
 
 export async function POST(req: Request) {
@@ -48,119 +77,80 @@ export async function POST(req: Request) {
     }
 
     const clientPhone = formatWhatsAppNumber(phone);
-    const adminPhone = process.env.ADMIN_WHATSAPP_PHONE || "254729226453";
-
     const whatsappToken = process.env.WHATSAPP_ACCESS_TOKEN;
     const whatsappPhoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
-    let whatsappSentToClient = false;
-    let whatsappSentToAdmin = false;
-    let apiError: string | null = null;
+    let clientMessageStatus = { sent: false, details: null as any };
+    const adminStatuses: Record<string, boolean> = {};
 
-    // Dispatch via Meta WhatsApp Cloud API if credentials exist
     if (whatsappToken && whatsappPhoneNumberId) {
       const metaUrl = `https://graph.facebook.com/v20.0/${whatsappPhoneNumberId}/messages`;
 
-      // 1. Message to Client
+      // 1. Direct Confirmation Message to the Client
       const clientMessageBody =
         `✨ *The Modest MC Entertainment - Reservation Received*\n` +
         `_Bringing Pomp & Colour to Every Event!_\n\n` +
         `Hello *${name}*,\n` +
-        `Thank you for contacting us! We have received your event details:\n\n` +
+        `Thank you for contacting us! We have received your event reservation inquiry:\n\n` +
         `📋 *Event:* ${eventType}\n` +
         `📅 *Date:* ${eventDate || "To be confirmed"}\n` +
         `📍 *Location:* ${eventLocation || "Not specified"}\n` +
         `👥 *Guests:* ${guestCount}\n` +
         `🎙️ *Services:* ${services}\n\n` +
-        `Our lead coordinator will call you shortly to align on your event schedule and confirm date reservation.\n\n` +
+        `Our lead coordinator will call you shortly on this number to align on your event schedule and confirm date reservation.\n\n` +
         `📞 *Hotline:* +254 729 226 453 | +254 745 558 377\n` +
         `📍 *Base:* Gwa Kairo, Ruiru\n` +
         `📺 *YouTube:* https://youtube.com/@modestmckenya`;
 
-      try {
-        const clientRes = await fetch(metaUrl, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${whatsappToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messaging_product: "whatsapp",
-            recipient_type: "individual",
-            to: clientPhone,
-            type: "text",
-            text: {
-              preview_url: false,
-              body: clientMessageBody,
-            },
-          }),
-        });
+      const clientSend = await sendWhatsApp(
+        metaUrl,
+        whatsappToken,
+        clientPhone,
+        clientMessageBody
+      );
+      clientMessageStatus = { sent: clientSend.ok, details: clientSend.data || clientSend.error };
 
-        if (clientRes.ok) {
-          whatsappSentToClient = true;
-        } else {
-          const errData = await clientRes.json();
-          console.warn("WhatsApp Cloud API (Client Message) response:", errData);
-          apiError = JSON.stringify(errData);
-        }
-      } catch (err: any) {
-        console.error("Error sending WhatsApp to client:", err);
-      }
-
-      // 2. Alert to The Modest MC Team Admin
+      // 2. Alert Sent to BOTH Admin Numbers (0745558377 & 0729226453)
       const adminMessageBody =
-        `🚨 *NEW EVENT BOOKING - THE MODEST MC*\n` +
-        `------------------------------------\n` +
-        `👤 *Client:* ${name}\n` +
-        `📞 *Phone:* ${phone} (${clientPhone})\n` +
-        `📧 *Email:* ${email || "None"}\n` +
+        `🚨 *NEW EVENT BOOKING RECEIVED - THE MODEST MC*\n` +
+        `-----------------------------------------\n` +
+        `👤 *Client Name:* ${name}\n` +
+        `📞 *Client Phone:* ${phone} (${clientPhone})\n` +
+        `📧 *Client Email:* ${email || "None"}\n` +
         `🎉 *Event:* ${eventType}\n` +
-        `📅 *Date:* ${eventDate}\n` +
-        `📍 *Venue:* ${eventLocation}\n` +
+        `📅 *Date:* ${eventDate || "TBD"}\n` +
+        `📍 *Location:* ${eventLocation}\n` +
         `👥 *Guests:* ${guestCount}\n` +
         `🎙️ *Services:* ${services}\n` +
         `📝 *Notes:* ${notes || "None"}\n` +
-        `------------------------------------\n` +
-        `Submitted via themodestmc.vercel.app`;
+        `-----------------------------------------\n` +
+        `_Submitted live via themodestmc.vercel.app_`;
 
-      try {
-        const adminRes = await fetch(metaUrl, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${whatsappToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messaging_product: "whatsapp",
-            recipient_type: "individual",
-            to: adminPhone,
-            type: "text",
-            text: {
-              preview_url: false,
-              body: adminMessageBody,
-            },
-          }),
-        });
-
-        if (adminRes.ok) {
-          whatsappSentToAdmin = true;
-        }
-      } catch (err: any) {
-        console.error("Error sending WhatsApp to admin:", err);
-      }
-    } else {
-      console.log(
-        "WhatsApp Cloud API keys (WHATSAPP_ACCESS_TOKEN / WHATSAPP_PHONE_NUMBER_ID) not configured yet. Logging submission."
+      await Promise.all(
+        ADMIN_PHONES.map(async (adminNum) => {
+          const res = await sendWhatsApp(
+            metaUrl,
+            whatsappToken,
+            adminNum,
+            adminMessageBody
+          );
+          adminStatuses[adminNum] = res.ok;
+          if (!res.ok) {
+            console.warn(`Could not deliver to admin ${adminNum}:`, res.data || res.error);
+          }
+        })
       );
+    } else {
+      console.log("WhatsApp Cloud API keys missing in environment.");
     }
 
     return NextResponse.json({
       success: true,
-      message: "Booking received successfully",
-      whatsappSentToClient,
-      whatsappSentToAdmin,
+      message: "Booking received and processed",
+      sentToClient: clientMessageStatus.sent,
+      clientPhone,
+      adminStatuses,
       configured: Boolean(whatsappToken && whatsappPhoneNumberId),
-      apiError,
     });
   } catch (error: any) {
     console.error("Booking API Error:", error);
