@@ -205,8 +205,8 @@ export default function AdminPage() {
       setUploadProgress(30);
 
       // Cloudinary unsigned upload endpoint
-      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "modestmc";
-      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "modest_unsigned";
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "ixd00ban";
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "modestmc";
 
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -217,7 +217,7 @@ export default function AdminPage() {
 
       try {
         const uploadRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/${isVideo ? "video" : "image"}/upload`,
+          `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
           {
             method: "POST",
             body: formData,
