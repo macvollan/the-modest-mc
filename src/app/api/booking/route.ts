@@ -114,9 +114,13 @@ export async function POST(req: Request) {
     });
 
     const clientPhone = formatWhatsAppNumber(phone);
-    const whatsappToken =
-      process.env.WHATSAPP_ACCESS_TOKEN ||
+    const LATEST_ACTIVE_TOKEN =
       "EAAvQa1tuSugBTH4lypNbWgFkkIGp6FQyNL2zgvc1K0uj9PqgDD3M2hZAvB8Pw3HJZBOpnryTSuJF2eVcKdCmJal67MAaNZAVMIPdMoxxLpHXBnAJmQljXg366BaZA1pFnCxz4S5HhQx9dXgf9c7iGLplbCAQiBZA9ZAnjA5JjLgtAgUh8D7ugHUT3ZCddOfOHqVnxm1rHJNdQ2O1oHLx5zQWutHLro4wrrJEvPBXrxD1l2fxDFZCFICE28DC17VQgHZBy68HxLUzsCBlleKWxxBQ8";
+    const envToken = process.env.WHATSAPP_ACCESS_TOKEN;
+    const whatsappToken =
+      !envToken || envToken.startsWith("EAAvQa1tuSugBTL")
+        ? LATEST_ACTIVE_TOKEN
+        : envToken;
     const whatsappPhoneNumberId =
       process.env.WHATSAPP_PHONE_NUMBER_ID || "1540671059125629";
 
