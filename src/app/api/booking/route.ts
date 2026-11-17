@@ -3,6 +3,7 @@ import { saveBooking, getBookings, updateBookingStatus } from "@/lib/db";
 
 interface BookingRequest {
   name: string;
+  countryCode?: string;
   phone: string;
   email?: string;
   eventType: string;
@@ -13,13 +14,25 @@ interface BookingRequest {
   notes?: string;
 }
 
-function formatWhatsAppNumber(phone: string): string {
-  const digits = phone.replace(/[^0-9]/g, "");
-  if (digits.startsWith("0")) {
+function formatWhatsAppNumber(phone: string, countryCode?: string): string {
+  const cleanCode = (countryCode || "").replace(/[^0-9]/g, "");
+  let digits = phone.replace(/[^0-9]/g, "");
+
+  if (cleanCode) {
+    if (digits.startsWith(cleanCode) && digits.length > 9) {
+      return digits;
+    }
+    if (digits.startsWith("0")) {
+      digits = digits.slice(1);
+    }
+    return `${cleanCode}${digits}`;
+  }
+
+  if (digits.startsWith("0") && digits.length === 10) {
     return "254" + digits.slice(1);
   }
-  if (digits.startsWith("254")) {
-    return digits;
+  if (digits.length === 9 && (digits.startsWith("7") || digits.startsWith("1"))) {
+    return "254" + digits;
   }
   return digits;
 }
@@ -46,9 +59,9 @@ async function sendWhatsApp(metaUrl: string, token: string, to: string, text: st
       }),
     });
     const data = await res.json();
-    return { ok: res.ok, data };
+    return { ok: res.ok, status: res.status, data };
   } catch (err: any) {
-    return { ok: false, error: err.message };
+    return { ok: false, status: 500, error: err.message };
   }
 }
 
@@ -83,6 +96,7 @@ export async function POST(req: Request) {
 
     const {
       name,
+      countryCode,
       phone,
       email,
       eventType,
@@ -100,10 +114,13 @@ export async function POST(req: Request) {
       );
     }
 
+    const clientPhone = formatWhatsAppNumber(phone, countryCode);
+    const formattedDisplayPhone = clientPhone ? `+${clientPhone}` : phone;
+
     // 1. Persist booking to Database (Neon / In-memory fallback)
     const savedRecord = await saveBooking({
       name,
-      phone,
+      phone: formattedDisplayPhone,
       email,
       eventType,
       eventDate,
@@ -113,22 +130,22 @@ export async function POST(req: Request) {
       notes,
     });
 
-    const clientPhone = formatWhatsAppNumber(phone);
+    // Always use verified Permanent System User Token (prevents expired Vercel env tokens from breaking delivery)
     const PERMANENT_SYSTEM_TOKEN =
       "EAAvQa1tuSugBTBrT2ikioHHvch28dG60yIlKxXv4fM4ouQqoH5IIHMLjqE3Wdcog6kCBCtZCU0tPnUom4D5SKZAA8LA42sfANdLcWQ8qPN3mit4MsmpUighCR9s4JHddYP3IdK8uzSr3muuv6ZCqbp66yWZCZBhG7X0YQHaLCMMz3a9PuhaeSb5MGNeHrTQZDZD";
     const envToken = process.env.WHATSAPP_ACCESS_TOKEN;
-    // Prefer permanent token or configured non-expired env token
     const whatsappToken =
-      !envToken || envToken.startsWith("EAAvQa1tuSugBTL") || envToken.startsWith("EAAvQa1tuSugBTH")
-        ? PERMANENT_SYSTEM_TOKEN
-        : envToken;
+      envToken && envToken.startsWith("EAAvQa1tuSugBTBr")
+        ? envToken
+        : PERMANENT_SYSTEM_TOKEN;
     const whatsappPhoneNumberId =
       process.env.WHATSAPP_PHONE_NUMBER_ID || "1540671059125629";
 
     let clientMessageStatus = { sent: false, details: null as any };
     const adminStatuses: Record<string, boolean> = {};
+    const adminDetails: Record<string, any> = {};
 
-    // 2. Dispatch WhatsApp Notifications if configured
+    // 2. Dispatch WhatsApp Notifications
     if (whatsappToken && whatsappPhoneNumberId) {
       const metaUrl = `https://graph.facebook.com/v20.0/${whatsappPhoneNumberId}/messages`;
 
@@ -143,25 +160,19 @@ export async function POST(req: Request) {
         `📍 *Location:* ${eventLocation || "Not specified"}\n` +
         `👥 *Guests:* ${guestCount}\n` +
         `🎙️ *Services:* ${services}\n\n` +
-        `Our lead coordinator will call you shortly on this number to align on your event schedule and confirm date reservation.\n\n` +
+        `Our lead coordinator will call you shortly on *${formattedDisplayPhone}* to align on your event schedule and confirm your reservation.\n\n` +
         `📞 *Hotline:* +254 729 226 453 | +254 745 558 377\n` +
-        `📍 *Base:* Gwa Kairo, Ruiru\n` +
-        `📺 *YouTube:* https://youtube.com/@modestmckenya`;
-
-      const clientSend = await sendWhatsApp(
-        metaUrl,
-        whatsappToken,
-        clientPhone,
-        clientMessageBody
-      );
-      clientMessageStatus = { sent: clientSend.ok, details: clientSend.data || clientSend.error };
+        `📧 *Email:* info@themodestmcevents.co.ke\n` +
+        `📍 *Base:* Gwa Kairo, Ruiru (Open Sun–Fri, Closed on Sabbath)\n` +
+        `🌐 *Website:* https://themodestmcevents.co.ke`;
 
       // Alert to Both Admin Numbers
       const adminMessageBody =
         `🚨 *NEW EVENT BOOKING RECEIVED - THE MODEST MC*\n` +
         `-----------------------------------------\n` +
         `👤 *Client Name:* ${name}\n` +
-        `📞 *Client Phone:* ${phone} (${clientPhone})\n` +
+        `📞 *Client Phone:* ${formattedDisplayPhone}\n` +
+        `💬 *Direct WhatsApp:* https://wa.me/${clientPhone}\n` +
         `📧 *Client Email:* ${email || "None"}\n` +
         `🎉 *Event:* ${eventType}\n` +
         `📅 *Date:* ${eventDate || "TBD"}\n` +
@@ -170,10 +181,12 @@ export async function POST(req: Request) {
         `🎙️ *Services:* ${services}\n` +
         `📝 *Notes:* ${notes || "None"}\n` +
         `-----------------------------------------\n` +
-        `_Submitted live via themodestmc.vercel.app_`;
+        `_Submitted live via https://themodestmcevents.co.ke_`;
 
-      await Promise.all(
-        ADMIN_PHONES.map(async (adminNum) => {
+      // Dispatch to client + both admin numbers in parallel
+      const [clientSend] = await Promise.all([
+        sendWhatsApp(metaUrl, whatsappToken, clientPhone, clientMessageBody),
+        ...ADMIN_PHONES.map(async (adminNum) => {
           const res = await sendWhatsApp(
             metaUrl,
             whatsappToken,
@@ -181,11 +194,17 @@ export async function POST(req: Request) {
             adminMessageBody
           );
           adminStatuses[adminNum] = res.ok;
+          adminDetails[adminNum] = res.data || res.error;
           if (!res.ok) {
             console.warn(`Could not deliver to admin ${adminNum}:`, res.data || res.error);
           }
-        })
-      );
+        }),
+      ]);
+
+      clientMessageStatus = {
+        sent: clientSend.ok,
+        details: clientSend.data || clientSend.error,
+      };
     }
 
     return NextResponse.json({
@@ -195,6 +214,7 @@ export async function POST(req: Request) {
       sentToClient: clientMessageStatus.sent,
       clientPhone,
       adminStatuses,
+      adminDetails,
       configured: Boolean(whatsappToken && whatsappPhoneNumberId),
     });
   } catch (error: any) {

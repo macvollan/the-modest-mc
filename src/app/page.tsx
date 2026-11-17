@@ -407,7 +407,9 @@ export default function Home() {
 
   // Booking Form State
   const [clientName, setClientName] = useState("");
-  const [clientPhone, setClientPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+254");
+  const [clientPhoneDigits, setClientPhoneDigits] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [eventType, setEventType] = useState("Wedding");
   const [otherEventDetails, setOtherEventDetails] = useState("");
@@ -431,17 +433,54 @@ export default function Home() {
     );
   };
 
+  const handleCountryCodeChange = (raw: string) => {
+    const cleaned = raw.replace(/[^0-9+]/g, "");
+    if (!cleaned) {
+      setCountryCode("+");
+      return;
+    }
+    const normalized = cleaned.startsWith("+")
+      ? "+" + cleaned.slice(1).replace(/\+/g, "").slice(0, 4)
+      : "+" + cleaned.replace(/\+/g, "").slice(0, 4);
+    setCountryCode(normalized);
+  };
+
+  const handlePhoneDigitsChange = (raw: string) => {
+    let digits = raw.replace(/[^0-9]/g, "");
+    const cleanCodeDigits = countryCode.replace(/[^0-9]/g, "");
+    if (cleanCodeDigits && digits.startsWith(cleanCodeDigits) && digits.length > 9) {
+      digits = digits.slice(cleanCodeDigits.length);
+    }
+    if (digits.startsWith("0") && digits.length > 9) {
+      digits = digits.slice(1);
+    } else if (digits.startsWith("0")) {
+      digits = digits.replace(/^0+/, "");
+    }
+    setClientPhoneDigits(digits.slice(0, 9));
+    if (phoneError) setPhoneError("");
+  };
+
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const cleanCode = countryCode.replace(/[^0-9]/g, "") || "254";
+    if (clientPhoneDigits.length !== 9) {
+      setPhoneError("Please enter the 9 digits of your phone number (e.g. 745558377).");
+      return;
+    }
+    setPhoneError("");
     setIsSubmitting(true);
 
     const finalEventType = eventType === "Other Celebration"
       ? `Other (${otherEventDetails || "Special Event"})`
       : eventType;
 
+    const fullFormattedPhone = `+${cleanCode}${clientPhoneDigits}`;
+
     const submissionData = {
       name: clientName,
-      phone: clientPhone,
+      countryCode: `+${cleanCode}`,
+      phone: fullFormattedPhone,
       email: clientEmail,
       eventType: finalEventType,
       eventDate,
@@ -466,7 +505,8 @@ export default function Home() {
 
       // Automatically clear all input fields after booking!
       setClientName("");
-      setClientPhone("");
+      setCountryCode("+254");
+      setClientPhoneDigits("");
       setClientEmail("");
       setEventType("Wedding");
       setOtherEventDetails("");
@@ -1413,7 +1453,7 @@ export default function Home() {
                     required
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    placeholder="e.g. Dennis Kamau / Safaricom Team"
+                    placeholder="Macvollan"
                     className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                   />
                 </div>
@@ -1422,14 +1462,49 @@ export default function Home() {
                   <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">
                     Your Phone / WhatsApp Number <span className="text-[#E5A827]">*</span>
                   </label>
-                  <input
-                    type="tel"
-                    required
-                    value={clientPhone}
-                    onChange={(e) => setClientPhone(e.target.value)}
-                    placeholder="e.g. 0712 345 678 or +254..."
-                    className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
-                  />
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-24 sm:w-28 shrink-0">
+                      <input
+                        type="text"
+                        required
+                        aria-label="Country Code"
+                        title="Country Code (Default: Kenya +254)"
+                        value={countryCode}
+                        onChange={(e) => handleCountryCodeChange(e.target.value)}
+                        placeholder="+254"
+                        className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-3 py-3 text-sm text-center font-semibold text-[#E5A827] placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
+                      />
+                    </div>
+                    <div className="flex-1 relative">
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        required
+                        minLength={9}
+                        maxLength={9}
+                        pattern="[0-9]{9}"
+                        aria-label="9-digit Phone Number"
+                        value={clientPhoneDigits}
+                        onChange={(e) => handlePhoneDigitsChange(e.target.value)}
+                        placeholder="745558377"
+                        className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 pr-14 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors tracking-wide"
+                      />
+                      <span
+                        className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold ${
+                          clientPhoneDigits.length === 9 ? "text-[#25D366]" : "text-slate-500"
+                        }`}
+                      >
+                        {clientPhoneDigits.length}/9
+                      </span>
+                    </div>
+                  </div>
+                  {phoneError ? (
+                    <p className="text-[11px] text-red-400 mt-1.5">{phoneError}</p>
+                  ) : (
+                    <p className="text-[11px] text-slate-400 mt-1.5">
+                      Country code (Kenya +254 default) + 9 digits without leading 0
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1443,7 +1518,7 @@ export default function Home() {
                     type="email"
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
-                    placeholder="e.g. name@example.com"
+                    placeholder="macvollan@gmail.com"
                     className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                   />
                 </div>
@@ -1493,7 +1568,7 @@ export default function Home() {
                     required
                     value={eventLocation}
                     onChange={(e) => setEventLocation(e.target.value)}
-                    placeholder="e.g. Ruiru, Nairobi, Naivasha, Nakuru..."
+                    placeholder="e.g. Gwa Kairo, Ruiru / Karen / Naivasha"
                     className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                   />
                 </div>
@@ -1510,7 +1585,7 @@ export default function Home() {
                     required
                     value={otherEventDetails}
                     onChange={(e) => setOtherEventDetails(e.target.value)}
-                    placeholder="e.g. Product Launch, Graduation Party, Church Crusade, Housewarming..."
+                    placeholder="e.g. Thanksgiving, Graduation Party, Product Launch, Housewarming..."
                     className="w-full bg-[#060D1E] border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#E5A827]"
                   />
                 </div>
@@ -1588,7 +1663,7 @@ export default function Home() {
                   rows={3}
                   value={specialNotes}
                   onChange={(e) => setSpecialNotes(e.target.value)}
-                  placeholder="Tell us about your event theme, specific timings, or any special requests..."
+                  placeholder="Share your event theme, preferred timings, sound setup needs, or special requests..."
                   className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                 />
               </div>
@@ -1677,7 +1752,7 @@ export default function Home() {
               {/* Primary Direct WhatsApp Button */}
               <a
                 href={`https://wa.me/${PRIMARY_PHONE.replace("+", "")}?text=${encodeURIComponent(
-                  `🎉 Hello The Modest MC, I have just completed our reservation request on your website for our ${lastSubmission.eventType} on ${lastSubmission.eventDate || "upcoming date"} at ${lastSubmission.eventLocation}. My name is ${lastSubmission.name}. Let's connect and lock in our date!`
+                  `🎉 Hello The Modest MC, I have just completed a reservation request on themodestmcevents.co.ke:\n\n👤 Name: ${lastSubmission.name}\n📞 Phone: ${lastSubmission.phone}\n🎊 Event: ${lastSubmission.eventType}\n📅 Date: ${lastSubmission.eventDate || "Upcoming date"}\n📍 Location: ${lastSubmission.eventLocation}\n🎙️ Services: ${lastSubmission.services}\n\nLet's connect and lock in our date!`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1691,7 +1766,7 @@ export default function Home() {
               <div className="grid grid-cols-2 gap-2.5">
                 <a
                   href={`https://wa.me/${SECONDARY_PHONE.replace("+", "")}?text=${encodeURIComponent(
-                    `🎉 Hello The Modest MC, I submitted a reservation request for ${lastSubmission.eventType} on ${lastSubmission.eventDate || "upcoming date"}. Client: ${lastSubmission.name}.`
+                    `🎉 Hello The Modest MC, I submitted a reservation request on themodestmcevents.co.ke:\n\n👤 Name: ${lastSubmission.name}\n📞 Phone: ${lastSubmission.phone}\n🎊 Event: ${lastSubmission.eventType}\n📅 Date: ${lastSubmission.eventDate || "Upcoming date"}\n📍 Location: ${lastSubmission.eventLocation}\n🎙️ Services: ${lastSubmission.services}`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1771,11 +1846,12 @@ export default function Home() {
               <div className="w-14 h-14 rounded-full bg-[#1044A3]/30 border border-[#E5A827]/50 flex items-center justify-center mx-auto text-[#E5A827]">
                 <Clock className="w-7 h-7" />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <h4 className="text-base font-bold text-white">Event Inquiries &amp; Consultations</h4>
-                <p className="text-xs text-slate-300">
-                  Monday to Saturday: 8:00 AM – 7:00 PM <br />
-                  Events Hosted: 24/7 Countrywide
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Sunday to Friday: 8:00 AM – 7:00 PM <br />
+                  <span className="text-[#E5A827] font-semibold">Closed on Sabbath (Saturday)</span> <br />
+                  Events Hosted Countrywide
                 </p>
               </div>
               <a
