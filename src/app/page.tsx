@@ -465,7 +465,7 @@ export default function Home() {
 
     const cleanCode = countryCode.replace(/[^0-9]/g, "") || "254";
     if (clientPhoneDigits.length !== 9) {
-      setPhoneError("Please enter the 9 digits of your phone number (e.g. 745558377).");
+      setPhoneError("Please enter the 9 digits of your phone number (e.g. 712345678 or 112345678).");
       return;
     }
     setPhoneError("");
@@ -1486,7 +1486,7 @@ export default function Home() {
                         aria-label="9-digit Phone Number"
                         value={clientPhoneDigits}
                         onChange={(e) => handlePhoneDigitsChange(e.target.value)}
-                        placeholder="745558377"
+                        placeholder="712345678"
                         className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 pr-14 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors tracking-wide"
                       />
                       <span
@@ -1502,7 +1502,7 @@ export default function Home() {
                     <p className="text-[11px] text-red-400 mt-1.5">{phoneError}</p>
                   ) : (
                     <p className="text-[11px] text-slate-400 mt-1.5">
-                      Country code (Kenya +254 default) + 9 digits without leading 0
+                      Country code (Kenya +254 default) + 9 digits (e.g. 712345678 or 112345678)
                     </p>
                   )}
                 </div>
@@ -1518,7 +1518,7 @@ export default function Home() {
                     type="email"
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
-                    placeholder="macvollan@gmail.com"
+                    placeholder="example@gmail.com"
                     className="w-full bg-[#060D1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827] transition-colors"
                   />
                 </div>
