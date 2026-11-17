@@ -38,6 +38,7 @@ function formatWhatsAppNumber(phone: string, countryCode?: string): string {
 }
 
 const ADMIN_PHONES = ["254745558377", "254729226453"];
+const ADMIN_BOOKING_TEMPLATE = "new_booking_alert1";
 
 async function sendWhatsApp(metaUrl: string, token: string, to: string, text: string) {
   try {
@@ -63,6 +64,67 @@ async function sendWhatsApp(metaUrl: string, token: string, to: string, text: st
   } catch (err: any) {
     return { ok: false, status: 500, error: err.message };
   }
+}
+
+async function sendWhatsAppTemplate(
+  metaUrl: string,
+  token: string,
+  to: string,
+  templateName: string,
+  params: string[]
+) {
+  // Meta template params forbid empty strings, newlines, tabs, or >4 consecutive spaces
+  const cleanParams = params.map((p) => {
+    const sanitized = (p || "Not specified")
+      .replace(/[\r\n\t]+/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    return sanitized.length > 0 ? sanitized.slice(0, 200) : "Not specified";
+  });
+
+  let lastResult: any = { ok: false, status: 400, error: "Template send failed" };
+
+  for (const langCode of ["en_US", "en"]) {
+    try {
+      const res = await fetch(metaUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          recipient_type: "individual",
+          to,
+          type: "template",
+          template: {
+            name: templateName,
+            language: { code: langCode },
+            components: [
+              {
+                type: "body",
+                parameters: cleanParams.map((text) => ({ type: "text", text })),
+              },
+            ],
+          },
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        return { ok: true, status: res.status, language: langCode, mode: "template", data };
+      }
+      lastResult = { ok: false, status: res.status, language: langCode, mode: "template", data };
+      // Only retry with alternate language code if translation mismatch (132001)
+      if (data?.error?.code !== 132001) {
+        return lastResult;
+      }
+    } catch (err: any) {
+      lastResult = { ok: false, status: 500, language: langCode, mode: "template", error: err.message };
+      return lastResult;
+    }
+  }
+
+  return lastResult;
 }
 
 // GET: Fetch all bookings for the Admin Dashboard
@@ -183,20 +245,52 @@ export async function POST(req: Request) {
         `-----------------------------------------\n` +
         `_Submitted live via https://themodestmcevents.co.ke_`;
 
+      const templateParams = [
+        name,
+        formattedDisplayPhone,
+        guestCount ? `${eventType} (${guestCount} guests)` : eventType,
+        eventDate || "To be confirmed",
+        eventLocation || "Not specified",
+        notes ? `${services} | Notes: ${notes}` : services || "General Event Inquiry",
+      ];
+
       // Dispatch to client + both admin numbers in parallel
+      // Admins use 24/7 Utility Template (new_booking_alert1) with automatic fallback to text while in review
       const [clientSend] = await Promise.all([
         sendWhatsApp(metaUrl, whatsappToken, clientPhone, clientMessageBody),
         ...ADMIN_PHONES.map(async (adminNum) => {
-          const res = await sendWhatsApp(
+          const templateRes = await sendWhatsAppTemplate(
             metaUrl,
             whatsappToken,
             adminNum,
-            adminMessageBody
+            ADMIN_BOOKING_TEMPLATE,
+            templateParams
           );
-          adminStatuses[adminNum] = res.ok;
-          adminDetails[adminNum] = res.data || res.error;
-          if (!res.ok) {
-            console.warn(`Could not deliver to admin ${adminNum}:`, res.data || res.error);
+
+          if (templateRes.ok) {
+            adminStatuses[adminNum] = true;
+            adminDetails[adminNum] = {
+              mode: "template",
+              template: ADMIN_BOOKING_TEMPLATE,
+              language: templateRes.language,
+              data: templateRes.data,
+            };
+          } else {
+            const textRes = await sendWhatsApp(
+              metaUrl,
+              whatsappToken,
+              adminNum,
+              adminMessageBody
+            );
+            adminStatuses[adminNum] = textRes.ok;
+            adminDetails[adminNum] = {
+              mode: "text_fallback",
+              templateError: templateRes.data || templateRes.error,
+              data: textRes.data || textRes.error,
+            };
+            if (!textRes.ok) {
+              console.warn(`Could not deliver to admin ${adminNum}:`, textRes.data || textRes.error);
+            }
           }
         }),
       ]);
