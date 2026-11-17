@@ -113,6 +113,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    google: "yYXPiOQRxZUZdiwBty277JIJXXuFHl2VFPpfqhZi1zg",
+  },
   other: {
     "geo.region": "KE-13",
     "geo.placename": "Ruiru, Kiambu, Kenya",
