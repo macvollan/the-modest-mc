@@ -35,10 +35,12 @@ const PRIMARY_PHONE = "+254729226453";
 const SECONDARY_PHONE = "+254745558377";
 const DISPLAY_PHONE_1 = "+254 729 226 453";
 const DISPLAY_PHONE_2 = "+254 745 558 377";
-const OFFICIAL_EMAIL = "themodestmckenya@gmail.com";
+const OFFICIAL_EMAIL = "info@themodestmcevents.co.ke";
+const BACKUP_EMAIL = "themodestmckenya@gmail.com";
 const YOUTUBE_URL = "https://youtube.com/@modestmckenya";
 const TIKTOK_URL = "https://www.tiktok.com/@modestmckenya";
-const FACEBOOK_URL = "https://www.facebook.com/"; // Can be updated with exact page slug
+const FACEBOOK_URL = "https://web.facebook.com/profile.php?id=61595879638350";
+const DOMAIN_URL = "https://themodestmcevents.co.ke";
 
 function YoutubeIcon({ className }: { className?: string }) {
   return (
@@ -1750,7 +1752,10 @@ export default function Home() {
                 <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-200">
                   <Mail className="w-4 h-4 text-[#E5A827]" />
                   <span>
-                    <strong>Official Email:</strong> {OFFICIAL_EMAIL}
+                    <strong>Official Email:</strong>{" "}
+                    <a href={`mailto:${OFFICIAL_EMAIL}`} className="text-white hover:text-[#E5A827] underline transition-colors">
+                      {OFFICIAL_EMAIL}
+                    </a>
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-200">
@@ -1870,7 +1875,9 @@ export default function Home() {
                 Gwa Kairo, Ruiru, Kenya <br />
                 {DISPLAY_PHONE_1} <br />
                 {DISPLAY_PHONE_2} <br />
-                {OFFICIAL_EMAIL}
+                <a href={`mailto:${OFFICIAL_EMAIL}`} className="hover:text-[#E5A827] underline transition-colors">
+                  {OFFICIAL_EMAIL}
+                </a>
               </p>
             </div>
           </div>

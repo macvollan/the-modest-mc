@@ -13,12 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://themodestmc.vercel.app"),
+  metadataBase: new URL("https://themodestmcevents.co.ke"),
   title: "The Modest MC Entertainment | Bringing Pomp & Colour",
   description:
     "Top-tier Master of Ceremonies (MC), high-definition sound systems, energetic corporate team building, and event planning based in Gwa Kairo, Ruiru. Bringing Pomp and Colour across Kenya.",
   keywords: [
     "The Modest MC Entertainment",
+    "The Modest MC Events",
     "MC Kenya",
     "Wedding MC Kenya",
     "Corporate MC Ruiru",
@@ -28,6 +29,9 @@ export const metadata: Metadata = {
     "Gwa Kairo Ruiru events",
     "Pomp and Colour"
   ],
+  alternates: {
+    canonical: "https://themodestmcevents.co.ke",
+  },
   icons: {
     icon: "/logo.jpg",
     apple: "/logo.jpg",
@@ -35,7 +39,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The Modest MC Entertainment | Bringing Pomp & Colour",
     description: "Unforgettable energy, crystal clear sound, and expert event hosting in Kenya.",
-    url: "https://themodestmc.vercel.app",
+    url: "https://themodestmcevents.co.ke",
     siteName: "The Modest MC Entertainment",
     images: [
       {
