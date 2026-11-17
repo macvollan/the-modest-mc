@@ -114,12 +114,13 @@ export async function POST(req: Request) {
     });
 
     const clientPhone = formatWhatsAppNumber(phone);
-    const LATEST_ACTIVE_TOKEN =
-      "EAAvQa1tuSugBTH4lypNbWgFkkIGp6FQyNL2zgvc1K0uj9PqgDD3M2hZAvB8Pw3HJZBOpnryTSuJF2eVcKdCmJal67MAaNZAVMIPdMoxxLpHXBnAJmQljXg366BaZA1pFnCxz4S5HhQx9dXgf9c7iGLplbCAQiBZA9ZAnjA5JjLgtAgUh8D7ugHUT3ZCddOfOHqVnxm1rHJNdQ2O1oHLx5zQWutHLro4wrrJEvPBXrxD1l2fxDFZCFICE28DC17VQgHZBy68HxLUzsCBlleKWxxBQ8";
+    const PERMANENT_SYSTEM_TOKEN =
+      "EAAvQa1tuSugBTBrT2ikioHHvch28dG60yIlKxXv4fM4ouQqoH5IIHMLjqE3Wdcog6kCBCtZCU0tPnUom4D5SKZAA8LA42sfANdLcWQ8qPN3mit4MsmpUighCR9s4JHddYP3IdK8uzSr3muuv6ZCqbp66yWZCZBhG7X0YQHaLCMMz3a9PuhaeSb5MGNeHrTQZDZD";
     const envToken = process.env.WHATSAPP_ACCESS_TOKEN;
+    // Prefer permanent token or configured non-expired env token
     const whatsappToken =
-      !envToken || envToken.startsWith("EAAvQa1tuSugBTL")
-        ? LATEST_ACTIVE_TOKEN
+      !envToken || envToken.startsWith("EAAvQa1tuSugBTL") || envToken.startsWith("EAAvQa1tuSugBTH")
+        ? PERMANENT_SYSTEM_TOKEN
         : envToken;
     const whatsappPhoneNumberId =
       process.env.WHATSAPP_PHONE_NUMBER_ID || "1540671059125629";
