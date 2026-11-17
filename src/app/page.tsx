@@ -258,6 +258,58 @@ const REVIEWS = [
   },
 ];
 
+const SLIDING_ITEMS = [
+  {
+    title: "Grand Bridal Entrance",
+    tag: "Weddings",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+    location: "Karen, Nairobi",
+    caption: "High-voltage royal entrance & crowd energizer",
+  },
+  {
+    title: "Line-Array Audio Towers",
+    tag: "Sound & PA",
+    image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
+    location: "Naivasha",
+    caption: "Crystal acoustic dispersion & sub-bass punch",
+  },
+  {
+    title: "Outdoor Team Challenge",
+    tag: "Team Building",
+    image: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80",
+    location: "Sagana",
+    caption: "High morale, bonding & leadership games",
+  },
+  {
+    title: "Vibrant Ruracio Dowry Hosting",
+    tag: "Culture",
+    image: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80",
+    location: "Kiambu",
+    caption: "Bilingual hosting & dignified cultural protocols",
+  },
+  {
+    title: "Milestone 40th Birthday Toast",
+    tag: "Birthdays",
+    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
+    location: "Lavington",
+    caption: "Electrifying toast, roast & celebration dance floor",
+  },
+  {
+    title: "Executive Corporate Gala",
+    tag: "Corporate",
+    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
+    location: "Ruiru",
+    caption: "Strict time-keeping & executive awards prestige",
+  },
+  {
+    title: "Live Sound Engineering Desk",
+    tag: "Audio Tech",
+    image: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=800&q=80",
+    location: "Nairobi",
+    caption: "Zero audio feedback, digital live equalization",
+  },
+];
+
 function getYouTubeId(url?: string) {
   if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
@@ -270,6 +322,34 @@ export default function Home() {
   const [galleryCategory, setGalleryCategory] = useState("All");
   const [liveGallery, setLiveGallery] = useState<any[]>(GALLERY_ITEMS);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
+  const [selectedPackageNotice, setSelectedPackageNotice] = useState<string | null>(null);
+
+  const handleChoosePackage = (pkg: (typeof PACKAGES)[0]) => {
+    if (pkg.name === "Corporate Synergy") {
+      setEventType("Corporate Function");
+      setSelectedServices([
+        "Team Building & Corporate Facilitation",
+        "Sound & PA System",
+        "Full Event Coordination & Planning",
+      ]);
+    } else if (pkg.name === "Royal Elite") {
+      setEventType("Wedding");
+      setSelectedServices([
+        "Master of Ceremonies (MC)",
+        "Sound & PA System",
+        "Full Event Coordination & Planning",
+      ]);
+    } else {
+      setEventType("Wedding");
+      setSelectedServices([
+        "Master of Ceremonies (MC)",
+        "Sound & PA System",
+      ]);
+    }
+    setSelectedPackageNotice(pkg.name);
+    const el = document.getElementById("booking");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
     fetch("/api/gallery")
@@ -646,6 +726,78 @@ export default function Home() {
         </div>
       </section>
 
+      {/* NEW: Live Highlights Sliding Gallery Marquee */}
+      <section className="py-12 bg-[#050B1A] border-y border-white/10 overflow-hidden relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5A827]/10 text-[#E5A827] text-xs font-semibold mb-2">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Live Pomp &amp; Colour Showcase</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+              Event Highlights <span className="gold-gradient-text">In Motion</span>
+            </h2>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-400 max-w-md">
+            Hover to pause • Click any frame to inspect the setup, venue, and celebratory energy.
+          </p>
+        </div>
+
+        {/* The Infinite Sliding Track */}
+        <div className="relative w-full overflow-hidden">
+          {/* Subtle gradient fades on left and right for seamless look */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-r from-[#050B1A] to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-l from-[#050B1A] to-transparent z-10 pointer-events-none" />
+
+          <div className="animate-marquee flex gap-5 py-2">
+            {[...SLIDING_ITEMS, ...SLIDING_ITEMS].map((slide, idx) => (
+              <div
+                key={idx}
+                onClick={() =>
+                  setSelectedMedia({
+                    title: slide.title,
+                    category: slide.tag,
+                    location: slide.location,
+                    mediaUrl: slide.image,
+                    image: slide.image,
+                    desc: slide.caption,
+                    mediaType: "photo",
+                  })
+                }
+                className="relative w-72 sm:w-80 h-52 shrink-0 rounded-2xl overflow-hidden card-gradient border border-white/10 hover:border-[#E5A827]/60 cursor-pointer group shadow-xl transition-all"
+              >
+                <Image
+                  src={slide.image}
+                  alt={slide.title}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#060D1E] via-[#060D1E]/40 to-transparent opacity-85 group-hover:opacity-60 transition-opacity" />
+
+                {/* Badge on slide */}
+                <span className="absolute top-3 right-3 bg-[#E5A827] text-[#060D1E] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                  {slide.tag}
+                </span>
+
+                <div className="absolute bottom-3 left-3 right-3 space-y-1">
+                  <div className="flex items-center gap-1 text-[11px] text-[#E5A827] font-semibold">
+                    <MapPin className="w-3 h-3" />
+                    <span>{slide.location}</span>
+                  </div>
+                  <h4 className="font-bold text-white text-sm group-hover:text-[#E5A827] transition-colors truncate">
+                    {slide.title}
+                  </h4>
+                  <p className="text-[11px] text-slate-300 font-light truncate">
+                    {slide.caption}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Services Grid Section */}
       <section id="services" className="py-20 bg-[#081530]/80 border-y border-white/10 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -720,6 +872,65 @@ export default function Home() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Sound & Acoustic Engineering Excellence Section */}
+      <section className="py-16 bg-[#07132B] border-b border-white/10 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
+            <span className="text-xs font-bold text-[#E5A827] tracking-widest uppercase">
+              High-Definition Sound &amp; PA Engineering
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+              Concert-Grade Audio Engineered for <span className="gold-gradient-text">High-Energy Crowds</span>
+            </h2>
+            <p className="text-sm text-slate-300">
+              Zero audio feedback, acoustic precision calibration, and deep sub-bass punch that carries speeches and dance entrance music effortlessly.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="card-gradient p-6 rounded-2xl border border-white/10 space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-[#1044A3]/40 border border-[#E5A827]/30 flex items-center justify-center text-[#E5A827]">
+                <Volume2 className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-white text-base">Line-Array Acoustic Towers</h3>
+              <p className="text-xs text-slate-300 leading-relaxed font-light">
+                Wide horizontal sound dispersion ensuring the back-row guests hear as crisply and comfortably as the high table.
+              </p>
+            </div>
+
+            <div className="card-gradient p-6 rounded-2xl border border-white/10 space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-[#1044A3]/40 border border-[#E5A827]/30 flex items-center justify-center text-[#E5A827]">
+                <Music className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-white text-base">Dual 18&quot; High-Excursion Subs</h3>
+              <p className="text-xs text-slate-300 leading-relaxed font-light">
+                Rich, punchy low-frequency resonance that makes bridal party entrances and evening party sets exhilarating.
+              </p>
+            </div>
+
+            <div className="card-gradient p-6 rounded-2xl border border-white/10 space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-[#1044A3]/40 border border-[#E5A827]/30 flex items-center justify-center text-[#E5A827]">
+                <Mic className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-white text-base">Dual UHF Wireless Mics</h3>
+              <p className="text-xs text-slate-300 leading-relaxed font-light">
+                Professional Shure vocal wireless systems with up to 150m uninterrupted roaming freedom across wide event gardens.
+              </p>
+            </div>
+
+            <div className="card-gradient p-6 rounded-2xl border border-white/10 space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-[#1044A3]/40 border border-[#E5A827]/30 flex items-center justify-center text-[#E5A827]">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-white text-base">Silent Generator Backup</h3>
+              <p className="text-xs text-slate-300 leading-relaxed font-light">
+                Independent standby silent generator power guaranteeing zero celebration blackouts or sound stoppage.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -1027,17 +1238,17 @@ export default function Home() {
                 </div>
 
                 <div className="pt-6">
-                  <a
-                    href="#book"
-                    className={`w-full py-3.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                  <button
+                    onClick={() => handleChoosePackage(pkg)}
+                    className={`w-full py-3.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                       pkg.highlight
-                        ? "bg-gradient-to-r from-[#FAD961] to-[#E5A827] text-[#060D1E] hover:brightness-110 shadow-lg"
-                        : "bg-[#1044A3]/40 hover:bg-[#1044A3] text-white border border-[#1044A3]"
+                        ? "bg-gradient-to-r from-[#FAD961] to-[#E5A827] text-[#060D1E] hover:brightness-110 shadow-lg font-black"
+                        : "bg-[#1044A3]/50 hover:bg-[#1044A3] text-white border border-[#1044A3] hover:border-[#E5A827]/40"
                     }`}
                   >
-                    <span>Request Quotation</span>
+                    <span>Select {pkg.name}</span>
                     <ArrowRight className="w-4 h-4" />
-                  </a>
+                  </button>
                 </div>
               </div>
             ))}
@@ -1152,6 +1363,7 @@ export default function Home() {
 
       {/* Interactive Booking & Appointment Section */}
       <section id="book" className="py-20 bg-gradient-to-b from-[#081530] to-[#060D1E] border-t border-white/10 relative">
+        <span id="booking" className="absolute -top-10" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5A827]/10 border border-[#E5A827]/30 text-[#E5A827] text-xs font-semibold">
@@ -1168,6 +1380,25 @@ export default function Home() {
 
           {/* Form Card */}
           <div className="card-gradient rounded-3xl p-6 sm:p-10 border border-[#E5A827]/30 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            {/* Selected Package Notice Banner */}
+            {selectedPackageNotice && (
+              <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#1044A3]/50 to-[#E5A827]/20 border border-[#E5A827] flex items-center justify-between text-xs text-[#E5A827] shadow-lg animate-in fade-in">
+                <div className="flex items-center gap-2.5 font-bold">
+                  <Sparkles className="w-4 h-4 text-[#E5A827] shrink-0" />
+                  <span>
+                    Package Selected: <strong>{selectedPackageNotice}</strong> • Form pre-filled for your convenience!
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPackageNotice(null)}
+                  className="text-slate-400 hover:text-white text-xs underline font-normal ml-3 shrink-0"
+                >
+                  Clear Selection
+                </button>
+              </div>
+            )}
+
             <form onSubmit={handleBookingSubmit} className="space-y-6">
               {/* Row 1: Name and Phone Number */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -1436,29 +1667,57 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 pt-2">
               <p className="text-xs text-center text-slate-300 leading-relaxed">
-                Thank you, <strong>{lastSubmission.name}</strong>! Your event details have been submitted. Our team will review the date and call you directly on <strong>{lastSubmission.phone}</strong>.
+                Thank you, <strong>{lastSubmission.name}</strong>! Your event details have been officially recorded in our reservation queue.
               </p>
 
-              {/* Optional WhatsApp Direct Chat if client chooses to open it */}
+              {/* Primary Direct WhatsApp Button */}
               <a
                 href={`https://wa.me/${PRIMARY_PHONE.replace("+", "")}?text=${encodeURIComponent(
-                  `🎉 Hello The Modest MC, I just submitted an inquiry on the website for my ${lastSubmission.eventType} on ${lastSubmission.eventDate || "upcoming date"} at ${lastSubmission.eventLocation}. My name is ${lastSubmission.name}.`
+                  `🎉 Hello The Modest MC, I have just completed our reservation request on your website for our ${lastSubmission.eventType} on ${lastSubmission.eventDate || "upcoming date"} at ${lastSubmission.eventLocation}. My name is ${lastSubmission.name}. Let's connect and lock in our date!`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
+                className="w-full py-4 px-5 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-sm flex items-center justify-center gap-2.5 shadow-[0_10px_25px_rgba(37,211,102,0.35)] transition-all hover:scale-[1.01]"
               >
-                <MessageCircle className="w-4 h-4" />
-                <span>Chat Directly on WhatsApp (Optional)</span>
+                <MessageCircle className="w-5 h-5 fill-current" />
+                <span>Chat Directly on WhatsApp (0729 226 453)</span>
               </a>
+
+              {/* Secondary Options Grid: Hotline 2 and Direct Call */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <a
+                  href={`https://wa.me/${SECONDARY_PHONE.replace("+", "")}?text=${encodeURIComponent(
+                    `🎉 Hello The Modest MC, I submitted a reservation request for ${lastSubmission.eventType} on ${lastSubmission.eventDate || "upcoming date"}. Client: ${lastSubmission.name}.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-3 px-3 rounded-xl bg-[#0C214A] hover:bg-[#112A5E] border border-white/10 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all text-center"
+                >
+                  <MessageCircle className="w-4 h-4 text-[#E5A827] shrink-0" />
+                  <span>Hotline 2 WhatsApp</span>
+                </a>
+
+                <a
+                  href={`tel:${PRIMARY_PHONE}`}
+                  className="py-3 px-3 rounded-xl bg-[#1044A3]/50 hover:bg-[#1044A3] border border-[#E5A827]/30 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all text-center"
+                >
+                  <Phone className="w-4 h-4 text-[#E5A827] shrink-0" />
+                  <span>Call Hotline</span>
+                </a>
+              </div>
+
+              {/* Multi-Rig Team Guarantee (No leak, pure reassurance) */}
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-[11px] text-slate-300 text-center leading-relaxed">
+                🛡️ <strong>Multi-Crew Guarantee:</strong> Every confirmed reservation is honored. Our nationwide firm operates multiple professional sound rigs and lead MCs for concurrent celebrations countrywide.
+              </div>
 
               <button
                 onClick={() => setBookingConfirmed(false)}
                 className="w-full py-3 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition-colors"
               >
-                Done / Close Window
+                Close &amp; Return to Website
               </button>
             </div>
           </div>

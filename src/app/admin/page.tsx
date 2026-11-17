@@ -23,6 +23,7 @@ import {
   ExternalLink,
   ChevronDown,
   Check,
+  Users,
 } from "lucide-react";
 
 interface Booking {
@@ -309,6 +310,14 @@ export default function AdminPage() {
     return matchesSearch && matchesStatus;
   });
 
+  // Calculate concurrent events on the same date for internal team allocation
+  const dateCounts = bookings.reduce((acc, b) => {
+    if (b.event_date && b.status !== "cancelled") {
+      acc[b.event_date] = (acc[b.event_date] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
   // Login Screen
   if (!isAuthenticated) {
     return (
@@ -540,6 +549,14 @@ export default function AdminPage() {
                         <span className="text-[11px] text-[#E5A827] font-semibold bg-[#E5A827]/10 px-2 py-0.5 rounded-md">
                           {b.event_type}
                         </span>
+
+                        {/* Internal Concurrent Date Flag (Team knows how to divide themselves) */}
+                        {b.event_date && (dateCounts[b.event_date] || 0) > 1 && (
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/40 flex items-center gap-1">
+                            <Users className="w-3 h-3 text-purple-400" />
+                            <span>Concurrent Date: {dateCounts[b.event_date]} Gigs on {b.event_date} (Allocate Crew)</span>
+                          </span>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-300">
@@ -575,22 +592,22 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2">
                         <a
                           href={`tel:${b.phone}`}
-                          className="inline-flex items-center gap-1 bg-white/10 hover:bg-white/15 text-white text-xs font-semibold px-3 py-2 rounded-xl"
+                          className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-all"
                         >
-                          <Phone className="w-3.5 h-3.5" />
+                          <Phone className="w-3.5 h-3.5 text-[#E5A827]" />
                           <span>Call</span>
                         </a>
 
                         <a
                           href={`https://wa.me/${b.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-                            `Hello ${b.name}, this is The Modest MC Entertainment regarding your booking inquiry for ${b.event_date || "your event"}.`
+                            `Hello ${b.name}, this is The Modest MC Entertainment following up on your ${b.event_type} inquiry for ${b.event_date || "your celebration"} at ${b.event_location || "your venue"}. We are thrilled and ready to bring Pomp and Colour to your event!`
                           )}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold px-3 py-2 rounded-xl"
+                          className="inline-flex items-center gap-1.5 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition-all"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
-                          <span>WhatsApp</span>
+                          <span>WhatsApp Client</span>
                         </a>
                       </div>
 
