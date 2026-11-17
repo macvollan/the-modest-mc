@@ -114,8 +114,11 @@ export async function POST(req: Request) {
     });
 
     const clientPhone = formatWhatsAppNumber(phone);
-    const whatsappToken = process.env.WHATSAPP_ACCESS_TOKEN;
-    const whatsappPhoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const whatsappToken =
+      process.env.WHATSAPP_ACCESS_TOKEN ||
+      "EAAvQa1tuSugBTH4lypNbWgFkkIGp6FQyNL2zgvc1K0uj9PqgDD3M2hZAvB8Pw3HJZBOpnryTSuJF2eVcKdCmJal67MAaNZAVMIPdMoxxLpHXBnAJmQljXg366BaZA1pFnCxz4S5HhQx9dXgf9c7iGLplbCAQiBZA9ZAnjA5JjLgtAgUh8D7ugHUT3ZCddOfOHqVnxm1rHJNdQ2O1oHLx5zQWutHLro4wrrJEvPBXrxD1l2fxDFZCFICE28DC17VQgHZBy68HxLUzsCBlleKWxxBQ8";
+    const whatsappPhoneNumberId =
+      process.env.WHATSAPP_PHONE_NUMBER_ID || "1540671059125629";
 
     let clientMessageStatus = { sent: false, details: null as any };
     const adminStatuses: Record<string, boolean> = {};
