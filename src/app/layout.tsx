@@ -33,8 +33,12 @@ export const metadata: Metadata = {
     canonical: "https://themodestmcevents.co.ke",
   },
   icons: {
-    icon: "/logo.jpg",
-    apple: "/logo.jpg",
+    icon: [
+      { url: "/logo.jpg", sizes: "any" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [{ url: "/logo.jpg", sizes: "180x180" }],
+    shortcut: "/logo.jpg",
   },
   openGraph: {
     title: "The Modest MC Entertainment | Bringing Pomp & Colour",
