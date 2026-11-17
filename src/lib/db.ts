@@ -235,14 +235,32 @@ export async function getGalleryItems() {
   if (sql) {
     try {
       const rows = await sql`SELECT * FROM gallery_items ORDER BY id DESC;`;
-      if (rows && rows.length > 0) {
-        return rows;
-      }
+      return rows || [];
     } catch (err) {
       console.error("Neon DB Gallery Select Error:", err);
     }
   }
   return inMemGallery;
+}
+
+export async function deleteGalleryItem(id: number) {
+  const sql = getDb();
+  if (sql) {
+    try {
+      const rows = await sql`DELETE FROM gallery_items WHERE id = ${id} RETURNING *;`;
+      return rows[0] || { id };
+    } catch (err) {
+      console.error("Neon DB Gallery Delete Error:", err);
+      throw err;
+    }
+  }
+
+  const index = inMemGallery.findIndex((item) => item.id === id);
+  if (index !== -1) {
+    const [removed] = inMemGallery.splice(index, 1);
+    return removed;
+  }
+  return null;
 }
 
 export async function addGalleryItem(item: {

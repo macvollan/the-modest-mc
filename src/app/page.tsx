@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import {
+  GALLERY_CATEGORIES,
+  isVideoMedia,
+  normalizeGalleryItem,
+  type NormalizedGalleryItem,
+} from "@/lib/gallery-categories";
 import {
   Mic,
   Volume2,
@@ -26,6 +33,7 @@ import {
   Music,
   Play,
   Camera,
+  Video,
   Layers,
   ChevronRight,
   Check,
@@ -321,8 +329,7 @@ function getYouTubeId(url?: string) {
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [galleryCategory, setGalleryCategory] = useState("All");
-  const [liveGallery, setLiveGallery] = useState<any[]>(GALLERY_ITEMS);
+  const [uploadedGallery, setUploadedGallery] = useState<NormalizedGalleryItem[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
   const [selectedPackageNotice, setSelectedPackageNotice] = useState<string | null>(null);
 
@@ -357,49 +364,11 @@ export default function Home() {
     fetch("/api/gallery")
       .then((res) => res.json())
       .then((data) => {
-        if (data.items && data.items.length > 0) {
-          const mapped = data.items.map((item: any) => {
-            const isYoutube =
-              item.media_type === "youtube" ||
-              (item.media_url &&
-                (item.media_url.includes("youtu.be") ||
-                  item.media_url.includes("youtube.com")));
-            const isTiktok =
-              item.media_type === "tiktok" ||
-              (item.media_url && item.media_url.includes("tiktok.com"));
-            const isVideo = item.media_type === "video";
-
-            let previewImg = item.thumbnail_url || item.media_url;
-            if (isYoutube) {
-              const ytId = getYouTubeId(item.media_url);
-              if (ytId) {
-                previewImg = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
-              }
-            }
-
-            return {
-              id: item.id,
-              title: item.title,
-              category: item.category,
-              location: item.location || "Kenya",
-              tag: item.category,
-              mediaType: isYoutube
-                ? "youtube"
-                : isTiktok
-                ? "tiktok"
-                : isVideo
-                ? "video"
-                : "photo",
-              mediaUrl: item.media_url,
-              image:
-                previewImg ||
-                "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
-              desc:
-                item.description ||
-                "Bringing Pomp and Colour to celebrations across Kenya.",
-            };
-          });
-          setLiveGallery(mapped);
+        if (Array.isArray(data.items)) {
+          const normalized = data.items.map((item: any) =>
+            normalizeGalleryItem(item)
+          );
+          setUploadedGallery(normalized);
         }
       })
       .catch((err) => console.warn("Live gallery fetch:", err));
@@ -517,11 +486,6 @@ export default function Home() {
       setGuestCount("100-250");
     }
   };
-
-  const filteredGallery =
-    galleryCategory === "All"
-      ? liveGallery
-      : liveGallery.filter((item) => item.category === galleryCategory);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#060D1E] text-slate-100 selection:bg-[#E5A827] selection:text-[#060D1E]">
@@ -977,7 +941,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* NEW: Pomp & Colour Media Gallery Section */}
+      {/* Pomp & Colour Category Gallery Cards Section */}
       <section id="gallery" className="py-20 bg-[#060D1E] relative border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -990,99 +954,80 @@ export default function Home() {
                 The <span className="gold-gradient-text">&quot;Pomp &amp; Colour&quot;</span> Gallery
               </h2>
               <p className="text-sm text-slate-300">
-                Browse through real event snapshots, high-energy celebrations, sound setups, and corporate facilitation sessions.
+                Choose an event category below to explore its dedicated gallery page — neatly organized into Photos and Videos.
               </p>
-            </div>
-
-            {/* Filter Tabs */}
-            <div className="flex flex-wrap gap-2">
-              {["All", "Weddings", "Corporate", "Team Building", "Birthdays", "Sound & Setup"].map(
-                (cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setGalleryCategory(cat)}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      galleryCategory === cat
-                        ? "bg-[#E5A827] text-[#060D1E] shadow-md font-bold"
-                        : "bg-[#0A1A3A] text-slate-400 hover:text-white border border-white/10"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                )
-              )}
             </div>
           </div>
 
-          {/* Gallery Grid */}
+          {/* Category Picture Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGallery.map((item: any, idx) => {
-              const isVideo = item.mediaType === "video";
-              const isYoutube = item.mediaType === "youtube";
-              const isTiktok = item.mediaType === "tiktok";
-              const isWatchable = isVideo || isYoutube || isTiktok;
+            {GALLERY_CATEGORIES.map((cat) => {
+              const catItems = uploadedGallery.filter(
+                (item) => item.category.toLowerCase() === cat.dbCategory.toLowerCase()
+              );
+              const catPhotos = catItems.filter((item) => !isVideoMedia(item.mediaType));
+              const catVideos = catItems.filter((item) => isVideoMedia(item.mediaType));
+              const coverSrc =
+                catPhotos[0]?.previewImage ||
+                catItems[0]?.previewImage ||
+                cat.fallbackCover;
 
               return (
-                <div
-                  key={idx}
-                  onClick={() => setSelectedMedia(item)}
-                  className="group relative rounded-2xl overflow-hidden card-gradient border border-white/10 hover:border-[#E5A827]/50 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+                <Link
+                  key={cat.slug}
+                  href={`/gallery/${cat.slug}`}
+                  className="group relative rounded-2xl overflow-hidden card-gradient border border-white/10 hover:border-[#E5A827]/70 transition-all duration-300 flex flex-col justify-between shadow-xl hover:-translate-y-1"
                 >
                   <div className="relative aspect-4/3 overflow-hidden bg-slate-900">
                     <Image
-                      src={item.image}
-                      alt={item.title}
+                      src={coverSrc}
+                      alt={cat.title}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      unoptimized={
-                        item.image.includes("cloudinary.com") ||
-                        item.image.includes("youtube.com") ||
-                        item.image.includes("ytimg.com")
-                      }
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      unoptimized
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#060D1E] via-[#060D1E]/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#060D1E] via-[#060D1E]/45 to-transparent opacity-85 group-hover:opacity-65 transition-opacity" />
 
-                    {/* Category Tag */}
-                    <span className="absolute top-3 right-3 bg-[#E5A827] text-[#060D1E] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
-                      {item.tag}
-                    </span>
-
-                    {/* Video/Play overlay */}
-                    {isWatchable && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-12 h-12 rounded-full bg-[#1044A3]/90 text-[#E5A827] border-2 border-[#E5A827] flex items-center justify-center shadow-lg group-hover:scale-115 transition-transform duration-300">
-                          {isYoutube ? (
-                            <YoutubeIcon className="w-6 h-6 text-white" />
-                          ) : isTiktok ? (
-                            <TikTokIcon className="w-5 h-5 text-white" />
-                          ) : (
-                            <Play className="w-5 h-5 fill-current ml-0.5" />
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-5 space-y-2">
-                    <div className="flex items-center justify-between text-xs text-[#E5A827]">
-                      <span className="font-semibold">{item.category}</span>
-                      <span className="text-slate-400 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {item.location}
+                    {/* Top Media Counts Badges */}
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                      <span className="inline-flex items-center gap-1 bg-black/75 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/15">
+                        <Camera className="w-3 h-3 text-[#E5A827]" />
+                        <span>{catPhotos.length} {catPhotos.length === 1 ? "Photo" : "Photos"}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 bg-black/75 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/15">
+                        <Video className="w-3 h-3 text-[#E5A827]" />
+                        <span>{catVideos.length} {catVideos.length === 1 ? "Video" : "Videos"}</span>
                       </span>
                     </div>
-                    <h3 className="font-bold text-white text-base group-hover:text-[#E5A827] transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-slate-300 leading-relaxed font-light line-clamp-2">
-                      {item.desc}
-                    </p>
-                    <div className="pt-2 flex items-center gap-1.5 text-xs text-[#E5A827] font-semibold group-hover:underline">
-                      <span>{isWatchable ? "Watch Reel" : "View Photo"}</span>
-                      <ArrowRight className="w-3 h-3" />
+
+                    {/* Category Pill */}
+                    <span className="absolute top-3 right-3 bg-[#E5A827] text-[#060D1E] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                      {cat.shortTitle}
+                    </span>
+
+                    {/* Overlay Title on Picture */}
+                    <div className="absolute bottom-3 left-4 right-4">
+                      <h3 className="font-black text-white text-xl group-hover:text-[#E5A827] transition-colors drop-shadow">
+                        {cat.title}
+                      </h3>
+                      <p className="text-[11px] text-[#E5A827] font-semibold truncate">
+                        {cat.tagline}
+                      </p>
                     </div>
                   </div>
-                </div>
+
+                  <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                    <p className="text-xs text-slate-300 leading-relaxed font-light line-clamp-2">
+                      {cat.description}
+                    </p>
+                    <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-[#E5A827]">
+                      <span>Open Photos &amp; Videos</span>
+                      <span className="w-7 h-7 rounded-full bg-[#E5A827]/15 group-hover:bg-[#E5A827] text-[#E5A827] group-hover:text-[#060D1E] flex items-center justify-center transition-all">
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
               );
             })}
           </div>

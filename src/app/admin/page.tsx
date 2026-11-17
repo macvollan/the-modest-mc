@@ -92,6 +92,10 @@ export default function AdminPage() {
   // Gallery State
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loadingGallery, setLoadingGallery] = useState(false);
+  const [galleryCategoryFilter, setGalleryCategoryFilter] = useState("all");
+  const [galleryTypeFilter, setGalleryTypeFilter] = useState<"all" | "photos" | "videos">("all");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // New Media Upload Form State
   const [mediaSource, setMediaSource] = useState<"cloudinary" | "youtube" | "tiktok">("cloudinary");
@@ -194,9 +198,35 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteMedia = async (item: GalleryItem) => {
+    const confirmed = window.confirm(
+      `Delete "${item.title}" (${item.category}) from the website gallery? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(item.id);
+    try {
+      const res = await fetch(`/api/gallery?id=${item.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setGalleryItems((prev) => prev.filter((g) => g.id !== item.id));
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(`Failed to delete item: ${errData.error || "Unknown error"}`);
+      }
+    } catch (err) {
+      console.error("Error deleting gallery item:", err);
+      alert("Network error while deleting file. Please try again.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const handleAddMedia = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
+    setUploadError(null);
     setUploadProgress(10);
 
     let finalMediaUrl = externalUrl;
@@ -206,7 +236,7 @@ export default function AdminPage() {
     // If uploading via Cloudinary direct file
     if (mediaSource === "cloudinary") {
       if (!selectedFile) {
-        alert("Please select a photo or video file to upload.");
+        setUploadError("Please select a photo or video file to upload.");
         setUploading(false);
         return;
       }
@@ -236,17 +266,25 @@ export default function AdminPage() {
         if (uploadRes.ok) {
           const uploadData = await uploadRes.json();
           finalMediaUrl = uploadData.secure_url;
-          finalThumbnailUrl = isVideo ? undefined : uploadData.secure_url;
+          finalThumbnailUrl = isVideo
+            ? uploadData.secure_url.replace(/\.(mp4|mov|webm|m4v|ogg)(\?.*)?$/i, ".jpg")
+            : uploadData.secure_url;
           setUploadProgress(80);
         } else {
-          // If custom Cloudinary account not yet configured, use local object preview fallback
-          finalMediaUrl = filePreview || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80";
-          finalThumbnailUrl = finalMediaUrl;
+          const errBody = await uploadRes.json().catch(() => ({}));
+          setUploadError(
+            `Cloudinary upload failed: ${errBody?.error?.message || uploadRes.statusText}. Please check file size/format and try again.`
+          );
+          setUploading(false);
+          setUploadProgress(0);
+          return;
         }
-      } catch (err) {
-        console.warn("Cloudinary direct upload fallback:", err);
-        finalMediaUrl = filePreview || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80";
-        finalThumbnailUrl = finalMediaUrl;
+      } catch (err: any) {
+        console.warn("Cloudinary upload error:", err);
+        setUploadError("Could not reach Cloudinary to upload the file. Check your internet connection and retry.");
+        setUploading(false);
+        setUploadProgress(0);
+        return;
       }
     } else if (mediaSource === "youtube") {
       finalMediaType = "youtube";
@@ -289,9 +327,13 @@ export default function AdminPage() {
         setFilePreview(null);
         fetchGallery();
         setTimeout(() => setUploadSuccess(false), 4000);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setUploadError(errData.error || "Failed to save media to database.");
       }
     } catch (err) {
       console.error("Error saving media to gallery:", err);
+      setUploadError("Failed to save media to database.");
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -722,9 +764,17 @@ export default function AdminPage() {
 
                     {filePreview && (
                       <div className="pt-2">
-                        <div className="relative w-40 h-28 mx-auto rounded-xl overflow-hidden border border-[#E5A827]">
-                          <Image src={filePreview} alt="Preview" fill className="object-cover" />
-                        </div>
+                        {selectedFile?.type.startsWith("video/") ? (
+                          <video
+                            src={filePreview}
+                            controls
+                            className="w-56 h-36 mx-auto rounded-xl overflow-hidden border border-[#E5A827] bg-black object-cover"
+                          />
+                        ) : (
+                          <div className="relative w-40 h-28 mx-auto rounded-xl overflow-hidden border border-[#E5A827]">
+                            <Image src={filePreview} alt="Preview" fill className="object-cover" unoptimized />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -813,6 +863,12 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                {uploadError && (
+                  <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-xs text-red-300 font-medium">
+                    ⚠️ {uploadError}
+                  </div>
+                )}
+
                 {uploading && (
                   <div className="space-y-2">
                     <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
@@ -839,44 +895,181 @@ export default function AdminPage() {
             </div>
 
             {/* Current Gallery Items List */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white">
-                Live Gallery Items ({galleryItems.length})
-              </h3>
+            <div className="space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0A1A3A] p-4 rounded-2xl border border-white/10">
+                <div>
+                  <h3 className="text-lg font-bold text-white">
+                    Live Gallery Files ({galleryItems.length})
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Filter by category or type, and delete any uploaded photo or video permanently.
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {galleryItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="card-gradient rounded-2xl overflow-hidden border border-white/10 space-y-3 p-4"
+                <div className="flex flex-wrap items-center gap-2">
+                  {(["all", "photos", "videos"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setGalleryTypeFilter(t)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+                        galleryTypeFilter === t
+                          ? "bg-[#E5A827] text-[#060D1E]"
+                          : "bg-[#060D1E] text-slate-400 border border-white/10 hover:text-white"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+
+                  <select
+                    value={galleryCategoryFilter}
+                    onChange={(e) => setGalleryCategoryFilter(e.target.value)}
+                    className="bg-[#060D1E] border border-white/15 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#E5A827]"
                   >
-                    <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-black/40">
-                      <Image
-                        src={item.media_url || item.thumbnail_url || "/logo.jpg"}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                      />
-                      <span className="absolute top-2 right-2 bg-[#E5A827] text-[#060D1E] text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
-                        {item.category}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1">
-                      <h4 className="font-bold text-white text-sm">{item.title}</h4>
-                      <p className="text-xs text-slate-400 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-[#E5A827]" />
-                        <span>{item.location}</span>
-                      </p>
-                      {item.description && (
-                        <p className="text-[11px] text-slate-300 leading-relaxed font-light">
-                          {item.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                    <option value="all">All Categories</option>
+                    <option value="Weddings">Weddings</option>
+                    <option value="Corporate">Corporate</option>
+                    <option value="Team Building">Team Building</option>
+                    <option value="Birthdays">Birthdays &amp; Showers</option>
+                    <option value="Sound & Setup">Sound &amp; Setup</option>
+                  </select>
+                </div>
               </div>
+
+              {(() => {
+                const visibleGallery = galleryItems.filter((item) => {
+                  const isVid =
+                    item.media_type === "video" ||
+                    item.media_type === "youtube" ||
+                    item.media_type === "tiktok" ||
+                    /\.(mp4|mov|webm|m4v)(\?|$)/i.test(item.media_url || "");
+                  const matchesType =
+                    galleryTypeFilter === "all" ||
+                    (galleryTypeFilter === "photos" && !isVid) ||
+                    (galleryTypeFilter === "videos" && isVid);
+                  const matchesCat =
+                    galleryCategoryFilter === "all" ||
+                    item.category === galleryCategoryFilter;
+                  return matchesType && matchesCat;
+                });
+
+                if (visibleGallery.length === 0) {
+                  return (
+                    <div className="card-gradient rounded-2xl p-12 text-center border border-white/10 text-slate-400 space-y-2">
+                      <Camera className="w-8 h-8 mx-auto text-slate-500" />
+                      <h4 className="text-base font-bold text-white">No uploaded files match this filter</h4>
+                      <p className="text-xs">Upload photos or videos above and they will appear here and on your category pages.</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {visibleGallery.map((item) => {
+                      const isDirectVideo =
+                        item.media_type === "video" ||
+                        /\.(mp4|mov|webm|m4v)(\?|$)/i.test(item.media_url || "");
+                      const isYoutube = item.media_type === "youtube";
+                      const isTiktok = item.media_type === "tiktok";
+                      const isVideo = isDirectVideo || isYoutube || isTiktok;
+                      const ytId = isYoutube ? getYouTubeId(item.media_url) : null;
+                      const previewSrc = isYoutube && ytId
+                        ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+                        : item.thumbnail_url || item.media_url || "/logo.jpg";
+
+                      return (
+                        <div
+                          key={item.id}
+                          className="card-gradient rounded-2xl overflow-hidden border border-white/10 hover:border-[#E5A827]/40 transition-all flex flex-col justify-between p-4 space-y-3"
+                        >
+                          <div className="space-y-3">
+                            <div className="relative aspect-4/3 rounded-xl overflow-hidden bg-black/60">
+                              {isDirectVideo ? (
+                                <video
+                                  src={item.media_url}
+                                  poster={item.thumbnail_url || undefined}
+                                  controls
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : isTiktok ? (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-zinc-900 to-black text-white gap-2 p-4 text-center">
+                                  <TikTokIcon className="w-10 h-10 text-[#E5A827]" />
+                                  <span className="text-[11px] font-semibold text-slate-300">TikTok Video Reel</span>
+                                </div>
+                              ) : (
+                                <Image
+                                  src={previewSrc}
+                                  alt={item.title}
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                              )}
+
+                              <span className="absolute top-2 left-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1 border border-white/15">
+                                {isVideo ? (
+                                  <>
+                                    <Video className="w-3 h-3 text-[#E5A827]" />
+                                    <span>{isYoutube ? "YouTube" : isTiktok ? "TikTok" : "Video"}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Camera className="w-3 h-3 text-[#E5A827]" />
+                                    <span>Photo</span>
+                                  </>
+                                )}
+                              </span>
+
+                              <span className="absolute top-2 right-2 bg-[#E5A827] text-[#060D1E] text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
+                                {item.category}
+                              </span>
+                            </div>
+
+                            <div className="space-y-1">
+                              <h4 className="font-bold text-white text-sm">{item.title}</h4>
+                              {item.location && (
+                                <p className="text-xs text-slate-400 flex items-center gap-1">
+                                  <MapPin className="w-3 h-3 text-[#E5A827]" />
+                                  <span>{item.location}</span>
+                                </p>
+                              )}
+                              {item.description && (
+                                <p className="text-[11px] text-slate-300 leading-relaxed font-light line-clamp-2">
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Card Footer: Open Link & Delete Button */}
+                          <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+                            <a
+                              href={item.media_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] text-slate-300 hover:text-[#E5A827] transition-colors"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span>Open File</span>
+                            </a>
+
+                            <button
+                              type="button"
+                              disabled={deletingId === item.id}
+                              onClick={() => handleDeleteMedia(item)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>{deletingId === item.id ? "Deleting..." : "Delete"}</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
