@@ -1,4 +1,6 @@
 import { neon } from "@neondatabase/serverless";
+import fs from "fs";
+import path from "path";
 
 // Global in-memory storage fallback when DATABASE_URL is not yet connected
 export interface InMemBooking {
@@ -42,71 +44,35 @@ export interface InMemCrew {
   created_at: string;
 }
 
-let inMemBookings: InMemBooking[] = [];
-let inMemGallery: InMemGallery[] = [
-  {
-    id: 1,
-    title: "Grand Wedding Reception",
-    category: "Weddings",
-    media_type: "photo",
-    media_url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
-    location: "Karen, Nairobi",
-    description: "Electrifying bride & groom entrance, seamless program, and royal energy.",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    title: "Corporate Team Building Games",
-    category: "Team Building",
-    media_type: "photo",
-    media_url: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80",
-    location: "Naivasha Resort",
-    description: "Engaging corporate challenges, obstacle courses, and morale-boosting energizers.",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    title: "Vibrant Ruracio Ceremony",
-    category: "Weddings",
-    media_type: "photo",
-    media_url: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80",
-    location: "Kiambu",
-    description: "Respectful cultural negotiations, bilingual hosting, and vibrant music.",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 4,
-    title: "Milestone 40th Birthday Gala",
-    category: "Birthdays",
-    media_type: "photo",
-    media_url: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
-    location: "Lavington",
-    description: "Cake cutting moments, roast-and-toast session, and crowd-moving party music.",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 5,
-    title: "Line-Array Audio & Sound Engineering",
-    category: "Sound & Setup",
-    media_type: "photo",
-    media_url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
-    location: "Nairobi",
-    description: "High-definition sound dispersion, acoustic calibration, and wireless clarity.",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 6,
-    title: "Outdoor Corporate End-Year Gala",
-    category: "Corporate",
-    media_type: "photo",
-    media_url: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
-    location: "Ruiru",
-    description: "Award presentations, executive speeches, and evening celebration dance floor.",
-    created_at: new Date().toISOString(),
-  },
-];
+// ---------------- LOCAL / SERVERLESS DISK BACKUP HELPERS ---------------- //
+function getBackupFilePath() {
+  if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+    return "/tmp/modest_crew_backup.json";
+  }
+  return path.join(process.cwd(), ".data", "modest_crew_backup.json");
+}
 
-let inMemCrew: InMemCrew[] = [
+function loadCrewBackup(): InMemCrew[] | null {
+  try {
+    const p = getBackupFilePath();
+    if (fs.existsSync(p)) {
+      const data = JSON.parse(fs.readFileSync(p, "utf-8"));
+      if (Array.isArray(data)) return data;
+    }
+  } catch {}
+  return null;
+}
+
+function saveCrewBackup(data: InMemCrew[]) {
+  try {
+    const p = getBackupFilePath();
+    const dir = path.dirname(p);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(p, JSON.stringify(data, null, 2), "utf-8");
+  } catch {}
+}
+
+const DEFAULT_CREW_SEED: InMemCrew[] = [
   {
     id: 1,
     name: "The Modest MC (Macvollan)",
@@ -157,9 +123,81 @@ let inMemCrew: InMemCrew[] = [
   },
 ];
 
+let inMemBookings: InMemBooking[] = [];
+let inMemGallery: InMemGallery[] = [
+  {
+    id: 1,
+    title: "Grand Wedding Reception",
+    category: "Weddings",
+    media_type: "photo",
+    media_url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+    location: "Karen, Nairobi",
+    description: "Electrifying bride & groom entrance, seamless program, and royal energy.",
+    uploaded_by: "Admin",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 2,
+    title: "Corporate Team Building Games",
+    category: "Team Building",
+    media_type: "photo",
+    media_url: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80",
+    location: "Naivasha Resort",
+    description: "Engaging corporate challenges, obstacle courses, and morale-boosting energizers.",
+    uploaded_by: "Admin",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 3,
+    title: "Vibrant Ruracio Ceremony",
+    category: "Weddings",
+    media_type: "photo",
+    media_url: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80",
+    location: "Kiambu",
+    description: "Respectful cultural negotiations, bilingual hosting, and vibrant music.",
+    uploaded_by: "Admin",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 4,
+    title: "Milestone 40th Birthday Gala",
+    category: "Birthdays",
+    media_type: "photo",
+    media_url: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
+    location: "Lavington",
+    description: "Cake cutting moments, roast-and-toast session, and crowd-moving party music.",
+    uploaded_by: "Admin",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 5,
+    title: "Line-Array Audio & Sound Engineering",
+    category: "Sound & Setup",
+    media_type: "photo",
+    media_url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
+    location: "Nairobi",
+    description: "High-definition sound dispersion, acoustic calibration, and wireless clarity.",
+    uploaded_by: "Admin",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 6,
+    title: "Outdoor Corporate End-Year Gala",
+    category: "Corporate",
+    media_type: "photo",
+    media_url: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
+    location: "Ruiru",
+    description: "Award presentations, executive speeches, and evening celebration dance floor.",
+    uploaded_by: "Admin",
+    created_at: new Date().toISOString(),
+  },
+];
+
+let inMemCrew: InMemCrew[] = loadCrewBackup() || [...DEFAULT_CREW_SEED];
+
 let tablesInitialized = false;
 
-async function initTables(sql: any) {
+async function ensureTables(sql: any) {
   if (tablesInitialized) return;
   try {
     await sql`
@@ -194,7 +232,6 @@ async function initTables(sql: any) {
       );
     `;
 
-    // Ensure uploaded_by column exists if table was created previously
     try {
       await sql`
         ALTER TABLE gallery_items ADD COLUMN IF NOT EXISTS uploaded_by TEXT DEFAULT 'Admin';
@@ -206,15 +243,32 @@ async function initTables(sql: any) {
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         role TEXT NOT NULL,
-        bio TEXT,
-        photo_url TEXT NOT NULL,
-        specialties TEXT,
-        experience_years TEXT,
+        bio TEXT DEFAULT '',
+        photo_url TEXT DEFAULT '/logo.jpg',
+        specialties TEXT DEFAULT '',
+        experience_years TEXT DEFAULT '5+ Years',
         display_order INT DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
+
+    // Seed default crew if table is empty
+    try {
+      const existing = await sql`SELECT id FROM crew_members LIMIT 1;`;
+      if (!existing || existing.length === 0) {
+        for (const c of DEFAULT_CREW_SEED) {
+          await sql`
+            INSERT INTO crew_members (
+              name, role, bio, photo_url, specialties, experience_years, display_order, is_active
+            ) VALUES (
+              ${c.name}, ${c.role}, ${c.bio}, ${c.photo_url},
+              ${c.specialties}, ${c.experience_years}, ${c.display_order}, ${c.is_active}
+            );
+          `;
+        }
+      }
+    } catch {}
 
     tablesInitialized = true;
   } catch (err) {
@@ -233,9 +287,7 @@ export function getDb() {
   if (!connectionString) {
     return null;
   }
-  const sql = neon(connectionString);
-  initTables(sql).catch(() => {});
-  return sql;
+  return neon(connectionString);
 }
 
 // ================= BOOKINGS API HELPERS ================= //
@@ -254,6 +306,7 @@ export async function saveBooking(booking: {
   const sql = getDb();
   if (sql) {
     try {
+      await ensureTables(sql);
       const rows = await sql`
         INSERT INTO bookings (
           name, phone, email, event_type, event_date, event_location, guest_count, services, notes, status
@@ -292,6 +345,7 @@ export async function getBookings() {
   const sql = getDb();
   if (sql) {
     try {
+      await ensureTables(sql);
       const rows = await sql`SELECT * FROM bookings ORDER BY id DESC;`;
       return rows;
     } catch (err) {
@@ -305,6 +359,7 @@ export async function updateBookingStatus(id: number, status: string) {
   const sql = getDb();
   if (sql) {
     try {
+      await ensureTables(sql);
       await sql`UPDATE bookings SET status = ${status} WHERE id = ${id};`;
       return true;
     } catch (err) {
@@ -321,6 +376,7 @@ export async function deleteBooking(id: number) {
   const sql = getDb();
   if (sql) {
     try {
+      await ensureTables(sql);
       const rows = await sql`DELETE FROM bookings WHERE id = ${id} RETURNING *;`;
       return rows[0] || { id };
     } catch (err) {
@@ -329,7 +385,7 @@ export async function deleteBooking(id: number) {
     }
   }
 
-  const index = inMemBookings.findIndex((item) => item.id === id);
+  const index = inMemBookings.findIndex((b) => b.id === id);
   if (index !== -1) {
     const [removed] = inMemBookings.splice(index, 1);
     return removed;
@@ -343,6 +399,7 @@ export async function getGalleryItems() {
   const sql = getDb();
   if (sql) {
     try {
+      await ensureTables(sql);
       const rows = await sql`SELECT * FROM gallery_items ORDER BY id DESC;`;
       return rows || [];
     } catch (err) {
@@ -365,6 +422,7 @@ export async function addGalleryItem(item: {
   const sql = getDb();
   if (sql) {
     try {
+      await ensureTables(sql);
       const rows = await sql`
         INSERT INTO gallery_items (
           title, category, media_type, media_url, thumbnail_url, location, description, uploaded_by
@@ -400,6 +458,7 @@ export async function getGalleryItemById(id: number) {
   const sql = getDb();
   if (sql) {
     try {
+      await ensureTables(sql);
       const rows = await sql`SELECT * FROM gallery_items WHERE id = ${id} LIMIT 1;`;
       return rows[0] || null;
     } catch (err) {
@@ -413,6 +472,7 @@ export async function deleteGalleryItem(id: number) {
   const sql = getDb();
   if (sql) {
     try {
+      await ensureTables(sql);
       const rows = await sql`DELETE FROM gallery_items WHERE id = ${id} RETURNING *;`;
       return rows[0] || { id };
     } catch (err) {
@@ -435,20 +495,18 @@ export async function getCrewMembers(onlyActive = true) {
   const sql = getDb();
   if (sql) {
     try {
-      let rows;
-      if (onlyActive) {
-        rows = await sql`
-          SELECT * FROM crew_members 
-          WHERE is_active = TRUE 
-          ORDER BY display_order ASC, id ASC;
-        `;
-      } else {
-        rows = await sql`
-          SELECT * FROM crew_members 
-          ORDER BY display_order ASC, id ASC;
-        `;
-      }
-      if (rows && rows.length > 0) {
+      await ensureTables(sql);
+      const rows = onlyActive
+        ? await sql`
+            SELECT * FROM crew_members 
+            WHERE is_active = TRUE 
+            ORDER BY display_order ASC, id ASC;
+          `
+        : await sql`
+            SELECT * FROM crew_members 
+            ORDER BY display_order ASC, id ASC;
+          `;
+      if (rows && Array.isArray(rows)) {
         return rows;
       }
     } catch (err) {
@@ -456,7 +514,8 @@ export async function getCrewMembers(onlyActive = true) {
     }
   }
 
-  const filtered = onlyActive ? inMemCrew.filter((c) => c.is_active) : inMemCrew;
+  const backup = loadCrewBackup() || inMemCrew;
+  const filtered = onlyActive ? backup.filter((c) => c.is_active) : backup;
   return [...filtered].sort((a, b) => a.display_order - b.display_order);
 }
 
@@ -464,43 +523,58 @@ export async function addCrewMember(crew: {
   name: string;
   role: string;
   bio?: string;
-  photoUrl: string;
+  photoUrl?: string;
   specialties?: string;
   experienceYears?: string;
   displayOrder?: number;
   isActive?: boolean;
 }) {
+  const cleanName = (crew.name || "").trim();
+  const cleanRole = (crew.role || "").trim();
+  const cleanBio = (crew.bio || "").trim();
+  const cleanPhoto = (crew.photoUrl || "").trim() || "/logo.jpg";
+  const cleanSpec = (crew.specialties || "").trim();
+  const cleanExp = (crew.experienceYears || "").trim() || "5+ Years";
+  const cleanOrder = Number(crew.displayOrder) || 1;
+  const cleanActive = crew.isActive !== undefined ? Boolean(crew.isActive) : true;
+
   const sql = getDb();
   if (sql) {
     try {
+      await ensureTables(sql);
       const rows = await sql`
         INSERT INTO crew_members (
           name, role, bio, photo_url, specialties, experience_years, display_order, is_active
         ) VALUES (
-          ${crew.name}, ${crew.role}, ${crew.bio || ""}, ${crew.photoUrl},
-          ${crew.specialties || ""}, ${crew.experienceYears || ""},
-          ${crew.displayOrder ?? 0}, ${crew.isActive ?? true}
+          ${cleanName}, ${cleanRole}, ${cleanBio}, ${cleanPhoto},
+          ${cleanSpec}, ${cleanExp}, ${cleanOrder}, ${cleanActive}
         ) RETURNING *;
       `;
-      return rows[0];
+      if (rows && rows[0]) {
+        return rows[0];
+      }
     } catch (err) {
       console.error("Neon DB Crew Insert Error:", err);
     }
   }
 
+  const backup = loadCrewBackup() || inMemCrew;
+  const maxId = backup.length > 0 ? Math.max(...backup.map((c) => c.id)) : 0;
   const newCrew: InMemCrew = {
-    id: inMemCrew.length + 1,
-    name: crew.name,
-    role: crew.role,
-    bio: crew.bio || "",
-    photo_url: crew.photoUrl,
-    specialties: crew.specialties || "",
-    experience_years: crew.experienceYears || "",
-    display_order: crew.displayOrder ?? inMemCrew.length + 1,
-    is_active: crew.isActive ?? true,
+    id: maxId + 1,
+    name: cleanName,
+    role: cleanRole,
+    bio: cleanBio,
+    photo_url: cleanPhoto,
+    specialties: cleanSpec,
+    experience_years: cleanExp,
+    display_order: cleanOrder,
+    is_active: cleanActive,
     created_at: new Date().toISOString(),
   };
-  inMemCrew.push(newCrew);
+  backup.push(newCrew);
+  inMemCrew = backup;
+  saveCrewBackup(inMemCrew);
   return newCrew;
 }
 
@@ -520,27 +594,42 @@ export async function updateCrewMember(
   const sql = getDb();
   if (sql) {
     try {
-      const rows = await sql`
-        UPDATE crew_members
-        SET
-          name = COALESCE(${crew.name}, name),
-          role = COALESCE(${crew.role}, role),
-          bio = COALESCE(${crew.bio}, bio),
-          photo_url = COALESCE(${crew.photoUrl}, photo_url),
-          specialties = COALESCE(${crew.specialties}, specialties),
-          experience_years = COALESCE(${crew.experienceYears}, experience_years),
-          display_order = COALESCE(${crew.displayOrder}, display_order),
-          is_active = COALESCE(${crew.isActive}, is_active)
-        WHERE id = ${id}
-        RETURNING *;
-      `;
-      return rows[0];
+      await ensureTables(sql);
+      const existing = await sql`SELECT * FROM crew_members WHERE id = ${id} LIMIT 1;`;
+      if (existing && existing[0]) {
+        const cur = existing[0];
+        const name = crew.name !== undefined ? crew.name.trim() : cur.name;
+        const role = crew.role !== undefined ? crew.role.trim() : cur.role;
+        const bio = crew.bio !== undefined ? crew.bio.trim() : (cur.bio || "");
+        const photoUrl = crew.photoUrl !== undefined ? crew.photoUrl.trim() : (cur.photo_url || "/logo.jpg");
+        const specialties = crew.specialties !== undefined ? crew.specialties.trim() : (cur.specialties || "");
+        const experienceYears = crew.experienceYears !== undefined ? crew.experienceYears.trim() : (cur.experience_years || "");
+        const displayOrder = crew.displayOrder !== undefined ? Number(crew.displayOrder) : (cur.display_order ?? 1);
+        const isActive = crew.isActive !== undefined ? Boolean(crew.isActive) : (cur.is_active ?? true);
+
+        const rows = await sql`
+          UPDATE crew_members
+          SET
+            name = ${name},
+            role = ${role},
+            bio = ${bio},
+            photo_url = ${photoUrl},
+            specialties = ${specialties},
+            experience_years = ${experienceYears},
+            display_order = ${displayOrder},
+            is_active = ${isActive}
+          WHERE id = ${id}
+          RETURNING *;
+        `;
+        if (rows && rows[0]) return rows[0];
+      }
     } catch (err) {
       console.error("Neon DB Crew Update Error:", err);
     }
   }
 
-  const member = inMemCrew.find((c) => c.id === id);
+  const backup = loadCrewBackup() || inMemCrew;
+  const member = backup.find((c) => c.id === id);
   if (member) {
     if (crew.name !== undefined) member.name = crew.name;
     if (crew.role !== undefined) member.role = crew.role;
@@ -548,8 +637,10 @@ export async function updateCrewMember(
     if (crew.photoUrl !== undefined) member.photo_url = crew.photoUrl;
     if (crew.specialties !== undefined) member.specialties = crew.specialties;
     if (crew.experienceYears !== undefined) member.experience_years = crew.experienceYears;
-    if (crew.displayOrder !== undefined) member.display_order = crew.displayOrder;
-    if (crew.isActive !== undefined) member.is_active = crew.isActive;
+    if (crew.displayOrder !== undefined) member.display_order = Number(crew.displayOrder);
+    if (crew.isActive !== undefined) member.is_active = Boolean(crew.isActive);
+    inMemCrew = backup;
+    saveCrewBackup(inMemCrew);
     return member;
   }
   return null;
@@ -559,18 +650,27 @@ export async function deleteCrewMember(id: number) {
   const sql = getDb();
   if (sql) {
     try {
+      await ensureTables(sql);
       const rows = await sql`DELETE FROM crew_members WHERE id = ${id} RETURNING *;`;
+      // Also remove from in-memory backup
+      inMemCrew = inMemCrew.filter((c) => c.id !== id);
+      const backup = loadCrewBackup();
+      if (backup) {
+        saveCrewBackup(backup.filter((c) => c.id !== id));
+      }
       return rows[0] || { id };
     } catch (err) {
       console.error("Neon DB Crew Delete Error:", err);
-      throw err;
     }
   }
 
-  const index = inMemCrew.findIndex((c) => c.id === id);
+  const backup = loadCrewBackup() || inMemCrew;
+  const index = backup.findIndex((c) => c.id === id);
   if (index !== -1) {
-    const [removed] = inMemCrew.splice(index, 1);
+    const [removed] = backup.splice(index, 1);
+    inMemCrew = backup;
+    saveCrewBackup(inMemCrew);
     return removed;
   }
-  return null;
+  return { id };
 }

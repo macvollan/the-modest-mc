@@ -221,6 +221,7 @@ export default function AdminPage() {
   const [isSavingCrew, setIsSavingCrew] = useState(false);
   const [crewNotice, setCrewNotice] = useState("");
   const [deletingCrewId, setDeletingCrewId] = useState<number | null>(null);
+  const [isGeneratingBio, setIsGeneratingBio] = useState(false);
 
   // Check existing session
   useEffect(() => {
@@ -742,6 +743,40 @@ export default function AdminPage() {
     setCrewFilePreview(URL.createObjectURL(file));
   };
 
+  const handleGenerateBioWithAI = async () => {
+    if (!crewForm.name.trim() || !crewForm.role.trim()) {
+      alert("Please enter the crew member's Full Name and Role first so AI can tailor their biography.");
+      return;
+    }
+
+    setIsGeneratingBio(true);
+    try {
+      const res = await fetch("/api/ai/crew-bio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: crewForm.name.trim(),
+          role: crewForm.role.trim(),
+          experienceYears: crewForm.experienceYears.trim(),
+          specialties: crewForm.specialties.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (data?.bio) {
+        setCrewForm((prev) => ({ ...prev, bio: data.bio }));
+        setCrewNotice("✨ AI generated an authentic Kenyan event biography! Feel free to review or tweak.");
+      } else {
+        alert("Could not generate bio at this time. Please try again.");
+      }
+    } catch (err) {
+      console.error("AI bio generation error:", err);
+      alert("Network error generating bio. Please try again.");
+    } finally {
+      setIsGeneratingBio(false);
+    }
+  };
+
   const handleSaveCrew = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!crewForm.name.trim() || !crewForm.role.trim()) {
@@ -753,34 +788,36 @@ export default function AdminPage() {
     setCrewNotice("");
 
     try {
-      let finalPhotoUrl = crewForm.photoUrl.trim();
+      let finalPhotoUrl = (crewForm.photoUrl || "").trim();
 
-      // If a local image file was picked, upload it to Cloudinary first
+      // If a local image file was picked, upload it to Cloudinary
       if (crewSelectedFile) {
-        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "ixd00ban";
-        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "modestmc";
+        try {
+          const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "ixd00ban";
+          const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "modestmc";
 
-        const formData = new FormData();
-        formData.append("file", crewSelectedFile);
-        formData.append("upload_preset", uploadPreset);
+          const formData = new FormData();
+          formData.append("file", crewSelectedFile);
+          formData.append("upload_preset", uploadPreset);
 
-        const cloudRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          { method: "POST", body: formData }
-        );
+          const cloudRes = await fetch(
+            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+            { method: "POST", body: formData }
+          );
 
-        if (!cloudRes.ok) {
-          throw new Error("Failed to upload crew photo to Cloudinary");
+          if (cloudRes.ok) {
+            const cloudData = await cloudRes.json();
+            if (cloudData?.secure_url) {
+              finalPhotoUrl = cloudData.secure_url;
+            }
+          }
+        } catch (uploadErr) {
+          console.warn("Cloudinary photo upload had a hiccup, falling back gracefully:", uploadErr);
         }
-
-        const cloudData = await cloudRes.json();
-        finalPhotoUrl = cloudData.secure_url;
       }
 
       if (!finalPhotoUrl) {
-        alert("Please provide a photo URL or choose a photo file for the crew member.");
-        setIsSavingCrew(false);
-        return;
+        finalPhotoUrl = "/logo.jpg";
       }
 
       if (isEditingCrew && crewForm.id) {
@@ -824,13 +861,19 @@ export default function AdminPage() {
           }),
         });
 
-        if (!res.ok) throw new Error("Failed to create crew member");
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || "Failed to create crew member");
+        }
         const data = await res.json();
-        setCrewMembers((prev) => [...prev, data.member]);
-        setCrewNotice(`✅ Added ${crewForm.name} to the crew roster!`);
+        if (data?.member) {
+          setCrewMembers((prev) => [...prev.filter((c) => c.id !== data.member.id), data.member]);
+          setCrewNotice(`✅ Added ${crewForm.name} to the crew roster!`);
+        }
       }
 
       resetCrewForm();
+      fetchCrew();
     } catch (err: any) {
       console.error("Error saving crew member:", err);
       alert(`Error: ${err.message || "Failed to save crew member"}`);
@@ -882,20 +925,24 @@ export default function AdminPage() {
     );
     if (!confirmed) return;
 
+    // Optimistically remove from view immediately
     setDeletingCrewId(id);
+    setCrewMembers((prev) => prev.filter((c) => c.id !== id));
+    if (isEditingCrew && crewForm.id === id) {
+      resetCrewForm();
+    }
+
     try {
       const res = await fetch(`/api/crew?id=${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setCrewMembers((prev) => prev.filter((c) => c.id !== id));
-        if (isEditingCrew && crewForm.id === id) {
-          resetCrewForm();
-        }
-      } else {
-        alert("Failed to delete crew member.");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        alert(`Failed to delete: ${errData.error || "Unknown error"}`);
+        fetchCrew();
       }
     } catch (err) {
       console.error("Error deleting crew member:", err);
       alert("Network error.");
+      fetchCrew();
     } finally {
       setDeletingCrewId(null);
     }
@@ -2751,14 +2798,26 @@ export default function AdminPage() {
 
                 {/* Public Biography */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Public Professional Biography
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                      Public Professional Biography
+                    </label>
+                    <button
+                      type="button"
+                      disabled={isGeneratingBio}
+                      onClick={handleGenerateBioWithAI}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white text-xs font-bold shadow transition-all cursor-pointer disabled:opacity-50"
+                      title="Generate an authentic Kenyan event biography using AI"
+                    >
+                      <Sparkles className={`w-3.5 h-3.5 ${isGeneratingBio ? "animate-spin text-amber-300" : "text-amber-300"}`} />
+                      <span>{isGeneratingBio ? "Generating Bio..." : "✨ Suggest Bio with AI"}</span>
+                    </button>
+                  </div>
                   <textarea
                     rows={3}
                     value={crewForm.bio}
                     onChange={(e) => setCrewForm({ ...crewForm, bio: e.target.value })}
-                    placeholder="Write a client-facing bio highlighting their experience, dedication, and personality. (Do not include private personal data like ID or home address)."
+                    placeholder="Write a client-facing bio or click 'Suggest Bio with AI' to generate one automatically!"
                     className="w-full bg-[#060D1E] border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#E5A827]"
                   />
                 </div>
