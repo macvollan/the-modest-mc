@@ -607,12 +607,13 @@ export default function AdminPage() {
         return;
       }
 
-      if (!data.media || data.media.length === 0) {
+      const mediaList = data.media || data.items || [];
+      if (mediaList.length === 0) {
         setExtractError("No photos or videos could be automatically found at this link.");
         return;
       }
 
-      const formatted: ExtractedCandidate[] = data.media.map((m: any, idx: number) => ({
+      const formatted: ExtractedCandidate[] = mediaList.map((m: any, idx: number) => ({
         id: `${m.id || idx}-${Date.now()}`,
         url: m.url,
         previewUrl: m.previewUrl || m.url,
@@ -2178,9 +2179,40 @@ export default function AdminPage() {
                     </div>
 
                     {extractError && (
-                      <p className="text-xs text-red-400 bg-red-500/10 p-3 rounded-xl border border-red-500/20">
-                        ⚠️ {extractError}
-                      </p>
+                      <div className="text-xs text-red-400 bg-red-500/10 p-3 rounded-xl border border-red-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <span>⚠️ {extractError}</span>
+                        {linkInput.trim() && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const trimmed = linkInput.trim();
+                              const isVid =
+                                /\.(mp4|mov|webm|m4v)(\?|$)/i.test(trimmed) ||
+                                trimmed.includes("youtube") ||
+                                trimmed.includes("youtu.be") ||
+                                trimmed.includes("tiktok") ||
+                                trimmed.includes("video");
+                              setExtractedCandidates([
+                                {
+                                  id: `manual-cand-${Date.now()}`,
+                                  url: trimmed,
+                                  previewUrl: isVid ? "/logo.jpg" : trimmed,
+                                  type: isVid ? "video" : "photo",
+                                  title: "Event Highlight",
+                                  selected: true,
+                                  category: linkDefaultCategory,
+                                  location: linkDefaultLocation,
+                                  description: "",
+                                },
+                              ]);
+                              setExtractError("");
+                            }}
+                            className="text-xs bg-white/10 hover:bg-white/20 text-white font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap"
+                          >
+                            ➕ Add link directly anyway
+                          </button>
+                        )}
+                      </div>
                     )}
                   </form>
 
