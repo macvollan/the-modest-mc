@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 
 // Global in-memory storage fallback when DATABASE_URL is not yet connected
-interface InMemBooking {
+export interface InMemBooking {
   id: number;
   name: string;
   phone: string;
@@ -16,7 +16,7 @@ interface InMemBooking {
   created_at: string;
 }
 
-interface InMemGallery {
+export interface InMemGallery {
   id: number;
   title: string;
   category: string;
@@ -25,6 +25,20 @@ interface InMemGallery {
   thumbnail_url?: string;
   location: string;
   description?: string;
+  uploaded_by?: string;
+  created_at: string;
+}
+
+export interface InMemCrew {
+  id: number;
+  name: string;
+  role: string;
+  bio: string;
+  photo_url: string;
+  specialties: string;
+  experience_years: string;
+  display_order: number;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -92,6 +106,57 @@ let inMemGallery: InMemGallery[] = [
   },
 ];
 
+let inMemCrew: InMemCrew[] = [
+  {
+    id: 1,
+    name: "The Modest MC (Macvollan)",
+    role: "Founder & Headlining Master of Ceremonies",
+    bio: "Over 8 years gracing prestigious weddings, traditional ruracio ceremonies, and executive corporate dinners across Kenya. Renowned for regal stage poise, bilingual English-Swahili fluency, and an electric crowd connection that keeps audiences celebrating from entrance to the last dance.",
+    photo_url: "/logo.jpg",
+    specialties: "Bilingual MC, Ruracio Protocols, VIP & Executive Galas, High-Energy Entrances",
+    experience_years: "8+ Years",
+    display_order: 1,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 2,
+    name: "DJ Steve (The Beat Maestro)",
+    role: "Resident DJ & Chief Sound Engineer",
+    bio: "Certified acoustic engineer and seasoned celebration DJ. Specializes in digital sound equalization, line-array tower calibration, wireless feedback elimination, and multi-genre Kenyan & international celebration playlists.",
+    photo_url: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=800&q=80",
+    specialties: "Line-Array Calibration, Live Digital Mixing, Wedding Playlists, Zero-Feedback Audio",
+    experience_years: "7+ Years",
+    display_order: 2,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 3,
+    name: "Faith Wanjiku",
+    role: "Head of Event Protocol & Planning",
+    bio: "The meticulous coordinator behind our smooth event timelines. Manages high-table protocol, vendor coordination (catering, decor, photography), and bride-groom schedule synchronization so our clients enjoy their big day stress-free.",
+    photo_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
+    specialties: "Program Flow, VIP Protocol, Vendor Synchronization, Crisis Management",
+    experience_years: "6+ Years",
+    display_order: 3,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 4,
+    name: "Brian Oduor",
+    role: "Senior Team Building Facilitator & Energizer",
+    bio: "Passionate corporate animator and outdoor team coach. Has led team synergy programs for top Kenyan corporate teams, financial institutions, and NGOs with memorable group dynamics and communication games.",
+    photo_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
+    specialties: "Corporate Games, Morale Boosting, Outdoor Team Challenges, Leadership Debrief",
+    experience_years: "5+ Years",
+    display_order: 4,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+];
+
 let tablesInitialized = false;
 
 async function initTables(sql: any) {
@@ -124,9 +189,33 @@ async function initTables(sql: any) {
         thumbnail_url TEXT,
         location TEXT,
         description TEXT,
+        uploaded_by TEXT DEFAULT 'Admin',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
+
+    // Ensure uploaded_by column exists if table was created previously
+    try {
+      await sql`
+        ALTER TABLE gallery_items ADD COLUMN IF NOT EXISTS uploaded_by TEXT DEFAULT 'Admin';
+      `;
+    } catch {}
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS crew_members (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        role TEXT NOT NULL,
+        bio TEXT,
+        photo_url TEXT NOT NULL,
+        specialties TEXT,
+        experience_years TEXT,
+        display_order INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
     tablesInitialized = true;
   } catch (err) {
     console.warn("Could not auto-create database tables:", err);
@@ -228,6 +317,26 @@ export async function updateBookingStatus(id: number, status: string) {
   return true;
 }
 
+export async function deleteBooking(id: number) {
+  const sql = getDb();
+  if (sql) {
+    try {
+      const rows = await sql`DELETE FROM bookings WHERE id = ${id} RETURNING *;`;
+      return rows[0] || { id };
+    } catch (err) {
+      console.error("Neon DB Booking Delete Error:", err);
+      throw err;
+    }
+  }
+
+  const index = inMemBookings.findIndex((item) => item.id === id);
+  if (index !== -1) {
+    const [removed] = inMemBookings.splice(index, 1);
+    return removed;
+  }
+  return null;
+}
+
 // ================= GALLERY API HELPERS ================= //
 
 export async function getGalleryItems() {
@@ -241,6 +350,63 @@ export async function getGalleryItems() {
     }
   }
   return inMemGallery;
+}
+
+export async function addGalleryItem(item: {
+  title: string;
+  category: string;
+  mediaType: string;
+  mediaUrl: string;
+  thumbnailUrl?: string;
+  location?: string;
+  description?: string;
+  uploaded_by?: string;
+}) {
+  const sql = getDb();
+  if (sql) {
+    try {
+      const rows = await sql`
+        INSERT INTO gallery_items (
+          title, category, media_type, media_url, thumbnail_url, location, description, uploaded_by
+        ) VALUES (
+          ${item.title}, ${item.category}, ${item.mediaType}, ${item.mediaUrl},
+          ${item.thumbnailUrl || ""}, ${item.location || ""}, ${item.description || ""},
+          ${item.uploaded_by || "Admin"}
+        ) RETURNING *;
+      `;
+      return rows[0];
+    } catch (err) {
+      console.error("Neon DB Gallery Insert Error:", err);
+    }
+  }
+
+  const newItem: InMemGallery = {
+    id: inMemGallery.length + 1,
+    title: item.title,
+    category: item.category,
+    media_type: item.mediaType,
+    media_url: item.mediaUrl,
+    thumbnail_url: item.thumbnailUrl,
+    location: item.location || "",
+    description: item.description || "",
+    uploaded_by: item.uploaded_by || "Admin",
+    created_at: new Date().toISOString(),
+  };
+  inMemGallery.unshift(newItem);
+  return newItem;
+}
+
+export async function getGalleryItemById(id: number) {
+  const sql = getDb();
+  if (sql) {
+    try {
+      const rows = await sql`SELECT * FROM gallery_items WHERE id = ${id} LIMIT 1;`;
+      return rows[0] || null;
+    } catch (err) {
+      console.error("Neon DB Gallery Select by ID Error:", err);
+    }
+  }
+  return inMemGallery.find((item) => item.id === id) || null;
 }
 
 export async function deleteGalleryItem(id: number) {
@@ -263,43 +429,148 @@ export async function deleteGalleryItem(id: number) {
   return null;
 }
 
-export async function addGalleryItem(item: {
-  title: string;
-  category: string;
-  mediaType: string;
-  mediaUrl: string;
-  thumbnailUrl?: string;
-  location?: string;
-  description?: string;
+// ================= CREW MEMBERS API HELPERS ================= //
+
+export async function getCrewMembers(onlyActive = true) {
+  const sql = getDb();
+  if (sql) {
+    try {
+      let rows;
+      if (onlyActive) {
+        rows = await sql`
+          SELECT * FROM crew_members 
+          WHERE is_active = TRUE 
+          ORDER BY display_order ASC, id ASC;
+        `;
+      } else {
+        rows = await sql`
+          SELECT * FROM crew_members 
+          ORDER BY display_order ASC, id ASC;
+        `;
+      }
+      if (rows && rows.length > 0) {
+        return rows;
+      }
+    } catch (err) {
+      console.error("Neon DB Crew Select Error:", err);
+    }
+  }
+
+  const filtered = onlyActive ? inMemCrew.filter((c) => c.is_active) : inMemCrew;
+  return [...filtered].sort((a, b) => a.display_order - b.display_order);
+}
+
+export async function addCrewMember(crew: {
+  name: string;
+  role: string;
+  bio?: string;
+  photoUrl: string;
+  specialties?: string;
+  experienceYears?: string;
+  displayOrder?: number;
+  isActive?: boolean;
 }) {
   const sql = getDb();
   if (sql) {
     try {
       const rows = await sql`
-        INSERT INTO gallery_items (
-          title, category, media_type, media_url, thumbnail_url, location, description
+        INSERT INTO crew_members (
+          name, role, bio, photo_url, specialties, experience_years, display_order, is_active
         ) VALUES (
-          ${item.title}, ${item.category}, ${item.mediaType}, ${item.mediaUrl},
-          ${item.thumbnailUrl || ""}, ${item.location || ""}, ${item.description || ""}
+          ${crew.name}, ${crew.role}, ${crew.bio || ""}, ${crew.photoUrl},
+          ${crew.specialties || ""}, ${crew.experienceYears || ""},
+          ${crew.displayOrder ?? 0}, ${crew.isActive ?? true}
         ) RETURNING *;
       `;
       return rows[0];
     } catch (err) {
-      console.error("Neon DB Gallery Insert Error:", err);
+      console.error("Neon DB Crew Insert Error:", err);
     }
   }
 
-  const newItem: InMemGallery = {
-    id: inMemGallery.length + 1,
-    title: item.title,
-    category: item.category,
-    media_type: item.mediaType,
-    media_url: item.mediaUrl,
-    thumbnail_url: item.thumbnailUrl,
-    location: item.location || "",
-    description: item.description || "",
+  const newCrew: InMemCrew = {
+    id: inMemCrew.length + 1,
+    name: crew.name,
+    role: crew.role,
+    bio: crew.bio || "",
+    photo_url: crew.photoUrl,
+    specialties: crew.specialties || "",
+    experience_years: crew.experienceYears || "",
+    display_order: crew.displayOrder ?? inMemCrew.length + 1,
+    is_active: crew.isActive ?? true,
     created_at: new Date().toISOString(),
   };
-  inMemGallery.unshift(newItem);
-  return newItem;
+  inMemCrew.push(newCrew);
+  return newCrew;
+}
+
+export async function updateCrewMember(
+  id: number,
+  crew: {
+    name?: string;
+    role?: string;
+    bio?: string;
+    photoUrl?: string;
+    specialties?: string;
+    experienceYears?: string;
+    displayOrder?: number;
+    isActive?: boolean;
+  }
+) {
+  const sql = getDb();
+  if (sql) {
+    try {
+      const rows = await sql`
+        UPDATE crew_members
+        SET
+          name = COALESCE(${crew.name}, name),
+          role = COALESCE(${crew.role}, role),
+          bio = COALESCE(${crew.bio}, bio),
+          photo_url = COALESCE(${crew.photoUrl}, photo_url),
+          specialties = COALESCE(${crew.specialties}, specialties),
+          experience_years = COALESCE(${crew.experienceYears}, experience_years),
+          display_order = COALESCE(${crew.displayOrder}, display_order),
+          is_active = COALESCE(${crew.isActive}, is_active)
+        WHERE id = ${id}
+        RETURNING *;
+      `;
+      return rows[0];
+    } catch (err) {
+      console.error("Neon DB Crew Update Error:", err);
+    }
+  }
+
+  const member = inMemCrew.find((c) => c.id === id);
+  if (member) {
+    if (crew.name !== undefined) member.name = crew.name;
+    if (crew.role !== undefined) member.role = crew.role;
+    if (crew.bio !== undefined) member.bio = crew.bio;
+    if (crew.photoUrl !== undefined) member.photo_url = crew.photoUrl;
+    if (crew.specialties !== undefined) member.specialties = crew.specialties;
+    if (crew.experienceYears !== undefined) member.experience_years = crew.experienceYears;
+    if (crew.displayOrder !== undefined) member.display_order = crew.displayOrder;
+    if (crew.isActive !== undefined) member.is_active = crew.isActive;
+    return member;
+  }
+  return null;
+}
+
+export async function deleteCrewMember(id: number) {
+  const sql = getDb();
+  if (sql) {
+    try {
+      const rows = await sql`DELETE FROM crew_members WHERE id = ${id} RETURNING *;`;
+      return rows[0] || { id };
+    } catch (err) {
+      console.error("Neon DB Crew Delete Error:", err);
+      throw err;
+    }
+  }
+
+  const index = inMemCrew.findIndex((c) => c.id === id);
+  if (index !== -1) {
+    const [removed] = inMemCrew.splice(index, 1);
+    return removed;
+  }
+  return null;
 }

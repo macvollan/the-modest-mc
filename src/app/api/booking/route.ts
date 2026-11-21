@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { saveBooking, getBookings, updateBookingStatus } from "@/lib/db";
+import { saveBooking, getBookings, updateBookingStatus, deleteBooking } from "@/lib/db";
 
 interface BookingRequest {
   name: string;
@@ -146,6 +146,31 @@ export async function PATCH(req: Request) {
     }
     await updateBookingStatus(Number(id), status);
     return NextResponse.json({ success: true, id, status });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// DELETE: Remove booking record (Admin only)
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    let idParam = searchParams.get("id");
+
+    if (!idParam) {
+      try {
+        const body = await req.json();
+        if (body?.id) idParam = String(body.id);
+      } catch {}
+    }
+
+    const id = Number(idParam);
+    if (!id || Number.isNaN(id)) {
+      return NextResponse.json({ error: "Valid booking id required" }, { status: 400 });
+    }
+
+    await deleteBooking(id);
+    return NextResponse.json({ success: true, deletedId: id });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

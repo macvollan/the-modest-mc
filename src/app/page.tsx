@@ -327,8 +327,96 @@ function getYouTubeId(url?: string) {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
+
+interface PublicCrewMember {
+  id: number;
+  name: string;
+  role: string;
+  bio?: string;
+  photo_url: string;
+  specialties?: string;
+  experience_years?: string;
+  display_order?: number;
+}
+
+const DEFAULT_CREW: PublicCrewMember[] = [
+  {
+    id: 1,
+    name: "The Modest MC (Macvollan)",
+    role: "Lead Master of Ceremonies & Creative Director",
+    experience_years: "8+ Years Experience",
+    photo_url: "/logo.jpg",
+    specialties: "Bilingual Emceeing (English/Swahili), Wedding Protocol, Agenda Engineering, Dignified Humor",
+    bio: "Renowned for bringing unmatched 'Pomp and Colour' to premium weddings, corporate summits, and cultural celebrations across Kenya. Macvollan blends high-level executive protocol with contagiously joyful Kenyan dance transitions.",
+  },
+  {
+    id: 2,
+    name: "DJ Steve",
+    role: "Resident Sound Engineer & Club/Event DJ",
+    experience_years: "6+ Years Experience",
+    photo_url: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=80",
+    specialties: "High-Fidelity Audio Mixing, Crowd Curation, Line-Array Acoustics, Zero Feedback Control",
+    bio: "A master of acoustic calibration and harmonic transitions. Steve ensures pristine vocal clarity across 500+ guest auditoriums, and seamless musical timing for bridal entrances, cake cutting, and evening after-parties.",
+  },
+  {
+    id: 3,
+    name: "Faith Wanjiku",
+    role: "Head of Event Protocol & Bridal Coordination",
+    experience_years: "5+ Years Experience",
+    photo_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=80",
+    specialties: "Traditional Ruracio Protocol, Bridal Party Queueing, Cake Ceremony Logistics, VIP Ushering",
+    bio: "With deep cultural reverence and meticulous timeline management, Faith coordinates family delegations, bridal party entrances, and stage etiquette so the host family can enjoy their day completely stress-free.",
+  },
+  {
+    id: 4,
+    name: "Brian Oduor",
+    role: "Senior Corporate Team Building Facilitator",
+    experience_years: "7+ Years Experience",
+    photo_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
+    specialties: "High-Energy Icebreakers, Mental Agility Challenges, Cross-Department Synergy, Outdoor Logistics",
+    bio: "Specializing in transformative corporate experiences across Naivasha, Sagana, and Nairobi resorts. Brian turns tired teams into connected, collaborative powerhouses through innovative physical and strategic challenges.",
+  },
+];
+
+const KENYAN_FAQS = [
+  {
+    q: "Do you travel for events outside Nairobi and Kiambu?",
+    a: "Yes, absolutely! While our base is in Gwa Kairo (Ruiru), we regularly travel across all Kenyan counties including Naivasha, Nakuru, Machakos, Nyeri, Limuru, Meru, Eldoret, Kisumu, and Mombasa. Out-of-county logistical arrangements (transport, call-time accommodation) are factored transparently into your custom quote.",
+  },
+  {
+    q: "What happens if there is a sudden KPLC power blackout at our venue?",
+    a: "We never leave our clients exposed. All our event PA packages are paired with dedicated surge protection, and for outdoor garden venues, we provide an autonomous silent diesel generator option so that when KPLC goes dark, your music, speeches, and microphones continue without skipping a beat.",
+  },
+  {
+    q: "Can The Modest MC handle traditional cultural ceremonies like Ruracio or Ngurario?",
+    a: "Yes! We specialize in both traditional ceremonies (Ruracio, Ngurario, dowry negotiations, introduction parties) and modern white weddings. Our emceeing seamlessly blends dignified Kikuyu, Swahili, and English protocols—honoring the elders with decorum while keeping the young generation energized with laughter and dance.",
+  },
+  {
+    q: "Can our church choir, live band, or private DJ plug into your sound system?",
+    a: "Yes. Our digital consoles feature multiple XLR and instrument inputs, direct boxes (DI), and dedicated stage monitor mixes. We arrive at least 2 hours before start time to run dedicated sound checks with your choir or instrumentalists.",
+  },
+  {
+    q: "What are your consultation hours and how do we lock our date?",
+    a: "Event consultations are available Sunday to Friday from 8:00 AM to 8:00 PM (Closed on Sabbath / Saturday). Dates are reserved on a first-deposit basis with an official invoice and confirmation agreement. You can submit your date through our online form or call +254 745 558 377 / +254 729 226 453.",
+  },
+];
+
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [crewList, setCrewList] = useState<PublicCrewMember[]>([]);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  useEffect(() => {
+    fetch("/api/crew")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.crew && data.crew.length > 0) {
+          setCrewList(data.crew);
+        }
+      })
+      .catch((err) => console.log("Crew fetch error:", err));
+  }, []);
+
   const [uploadedGallery, setUploadedGallery] = useState<NormalizedGalleryItem[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
   const [selectedPackageNotice, setSelectedPackageNotice] = useState<string | null>(null);
@@ -536,8 +624,14 @@ export default function Home() {
             <a href="#about" className="hover:text-[#E5A827] transition-colors">
               About Modest MC
             </a>
+            <a href="#crew" className="hover:text-[#E5A827] transition-colors">
+              Our Crew
+            </a>
             <a href="#reviews" className="hover:text-[#E5A827] transition-colors">
               Testimonials
+            </a>
+            <a href="#faq" className="hover:text-[#E5A827] transition-colors">
+              FAQ
             </a>
             <a href="#contact" className="hover:text-[#E5A827] transition-colors">
               Contact
@@ -1310,6 +1404,85 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {/* ================= MEET THE CREW SECTION ================= */}
+          <div id="crew" className="mt-20 pt-16 border-t border-white/10">
+            <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
+              <span className="text-xs font-bold text-[#E5A827] tracking-widest uppercase">
+                The Talent Behind The Mic &amp; Sound Consoles
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+                Meet Our Crew &amp; Event Specialists
+              </h2>
+              <p className="text-slate-300 text-sm sm:text-base font-light">
+                We never take a one-man gamble on your milestone celebration. Our seasoned team of bilingual emcees, certified sound engineers, protocol coordinators, and team building facilitators ensure your event runs with royal precision and pure Kenyan joy.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {(crewList.length > 0 ? crewList : DEFAULT_CREW).map((member) => (
+                <div
+                  key={member.id}
+                  className="bg-[#091735]/90 border border-white/10 hover:border-[#E5A827]/50 rounded-3xl p-5 flex flex-col justify-between transition-all duration-300 shadow-xl group hover:-translate-y-1"
+                >
+                  <div className="space-y-4">
+                    {/* Photo Container */}
+                    <div className="relative aspect-square rounded-2xl overflow-hidden border border-[#E5A827]/30 shadow-md">
+                      <Image
+                        src={member.photo_url || "/logo.jpg"}
+                        alt={member.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      {member.experience_years && (
+                        <span className="absolute top-2.5 right-2.5 bg-[#E5A827] text-[#060D1E] text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-md">
+                          {member.experience_years}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="font-extrabold text-white text-base sm:text-lg group-hover:text-[#E5A827] transition-colors">
+                        {member.name}
+                      </h3>
+                      <p className="text-xs font-bold text-[#E5A827] uppercase tracking-wider">
+                        {member.role}
+                      </p>
+                    </div>
+
+                    {member.specialties && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {member.specialties.split(",").map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[10px] bg-white/5 border border-white/10 text-slate-300 px-2 py-0.5 rounded-md"
+                          >
+                            {s.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {member.bio && (
+                      <p className="text-xs text-slate-300 leading-relaxed font-light pt-1">
+                        {member.bio}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="pt-4 mt-4 border-t border-white/10">
+                    <a
+                      href="#book"
+                      className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-white/5 hover:bg-[#E5A827] text-white hover:text-[#060D1E] text-xs font-bold transition-all border border-white/10 hover:border-[#E5A827]"
+                    >
+                      <span>Book With Our Team</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1344,6 +1517,111 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= KENYAN EVENT TECH SPECS & FAQ SECTION ================= */}
+      <section id="faq" className="py-20 bg-[#060D1E] border-t border-white/10 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+          {/* Tech Equipment Guarantee */}
+          <div className="card-gradient rounded-3xl p-8 sm:p-12 border border-[#E5A827]/30 shadow-2xl space-y-8">
+            <div className="text-center max-w-3xl mx-auto space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5A827]/10 border border-[#E5A827]/30 text-[#E5A827] text-xs font-bold uppercase tracking-wider">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Zero Downtime Audio Guarantee</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+                Concert-Grade Equipment Built For Kenyan Venues
+              </h2>
+              <p className="text-sm sm:text-base text-slate-300 font-light">
+                Whether you are holding an outdoor garden wedding in Karen, a lakeside gala in Naivasha, or a high-level conference at Windsor Golf Club, our setup guarantees 100% vocal clarity, zero feedback, and zero blackout interruptions.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="p-5 rounded-2xl bg-[#091735] border border-white/10 space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-[#E5A827]/10 border border-[#E5A827]/30 flex items-center justify-center text-[#E5A827]">
+                  <Mic className="w-5 h-5" />
+                </div>
+                <h4 className="text-white font-bold text-sm">Shure UHF Dual Wireless</h4>
+                <p className="text-xs text-slate-400 font-light leading-relaxed">
+                  BLX/GLXD professional handheld systems with zero dropouts and pristine speech intelligibility for the MC, couple, and pastors.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-[#091735] border border-white/10 space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-[#E5A827]/10 border border-[#E5A827]/30 flex items-center justify-center text-[#E5A827]">
+                  <Volume2 className="w-5 h-5" />
+                </div>
+                <h4 className="text-white font-bold text-sm">Line-Arrays &amp; 18&quot; Subs</h4>
+                <p className="text-xs text-slate-400 font-light leading-relaxed">
+                  Active vertical array towers covering 1,000+ seated guests without harsh ear-piercing treble, backed by chest-thumping subwoofers for the evening dance floor.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-[#091735] border border-white/10 space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-[#E5A827]/10 border border-[#E5A827]/30 flex items-center justify-center text-[#E5A827]">
+                  <ShieldCheck className="w-5 h-5 text-green-400" />
+                </div>
+                <h4 className="text-white font-bold text-sm">Silent Generator Backup</h4>
+                <p className="text-xs text-slate-400 font-light leading-relaxed">
+                  Autonomous standby generator backup and surge filters ready to kick in within seconds if KPLC grid power goes down at your venue.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-[#091735] border border-white/10 space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-[#E5A827]/10 border border-[#E5A827]/30 flex items-center justify-center text-[#E5A827]">
+                  <Music className="w-5 h-5" />
+                </div>
+                <h4 className="text-white font-bold text-sm">Digital Mixing Consoles</h4>
+                <p className="text-xs text-slate-400 font-light leading-relaxed">
+                  Yamaha MG &amp; Behringer digital consoles with multitrack inputs for live choirs, acoustic guitars, playback laptops, and choir microphones.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Frequently Asked Questions */}
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="text-center space-y-2">
+              <span className="text-xs font-bold text-[#E5A827] tracking-widest uppercase">
+                Got Questions?
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
+                Frequently Asked by Kenyan Event Planners
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 font-light">
+                Practical answers on venue travel, traditional protocols, deposit locking, and day-of-event logistics.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {KENYAN_FAQS.map((faq, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-2xl border border-white/10 bg-[#091735]/70 overflow-hidden transition-colors"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.02]"
+                  >
+                    <span className="font-bold text-white text-sm sm:text-base">
+                      {faq.q}
+                    </span>
+                    <span className="text-[#E5A827] text-lg font-bold shrink-0">
+                      {openFaq === idx ? "−" : "+"}
+                    </span>
+                  </button>
+                  {openFaq === idx && (
+                    <div className="px-4 pb-5 sm:px-5 text-xs sm:text-sm text-slate-300 leading-relaxed font-light border-t border-white/5 pt-3">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
